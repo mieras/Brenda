@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
 import Image from 'next/image'
+import { getAssetPath } from '@/lib/utils'
 import {
   Sparkles,
   ArrowRight,
@@ -65,7 +66,7 @@ export default function Home() {
             <div className="relative">
               <div className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 flex items-center justify-center shadow-2xl overflow-hidden border-4 border-white dark:border-gray-800">
                 <Image
-                  src="/images/brenda-avatar.png"
+                  src={getAssetPath('/images/brenda-avatar.png')}
                   alt="Brenda - Your AI Brand Assistant"
                   width={256}
                   height={256}

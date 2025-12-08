@@ -27,7 +27,7 @@ import {
   Wand2,
   MessageSquare
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, getAssetPath } from '@/lib/utils'
 import { getResponse, getWelcomeMessage } from '@/lib/mockResponses'
 
 interface Message {
@@ -120,7 +120,7 @@ export default function BrendaSheet({ open, onOpenChange }: BrendaSheetProps) {
         <SheetHeader className="px-6 py-4 border-b">
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12 border-2 border-amber-200 dark:border-amber-800">
-              <AvatarImage src="/images/brenda-avatar.png" alt="Brenda" className="object-cover object-top" />
+              <AvatarImage src={getAssetPath('/images/brenda-avatar.png')} alt="Brenda" className="object-cover object-top" />
               <AvatarFallback className="bg-amber-100 text-amber-800">B</AvatarFallback>
             </Avatar>
             <div>
@@ -168,7 +168,7 @@ export default function BrendaSheet({ open, onOpenChange }: BrendaSheetProps) {
                 <Avatar className="h-8 w-8 shrink-0">
                   {message.role === 'assistant' ? (
                     <>
-                      <AvatarImage src="/images/brenda-avatar.png" alt="Brenda" className="object-cover object-top" />
+                      <AvatarImage src={getAssetPath('/images/brenda-avatar.png')} alt="Brenda" className="object-cover object-top" />
                       <AvatarFallback className="bg-amber-100 text-amber-800">B</AvatarFallback>
                     </>
                   ) : (
@@ -190,7 +190,7 @@ export default function BrendaSheet({ open, onOpenChange }: BrendaSheetProps) {
             {isTyping && (
               <div className="flex gap-3 animate-in slide-in-from-bottom-2">
                 <Avatar className="h-8 w-8 shrink-0">
-                  <AvatarImage src="/images/brenda-avatar.png" alt="Brenda" className="object-cover object-top" />
+                  <AvatarImage src={getAssetPath('/images/brenda-avatar.png')} alt="Brenda" className="object-cover object-top" />
                   <AvatarFallback className="bg-amber-100 text-amber-800">B</AvatarFallback>
                 </Avatar>
                 <div className="bg-muted rounded-2xl px-4 py-2.5">

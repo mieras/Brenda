@@ -5,6 +5,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// Get the correct asset path for static exports (GitHub Pages)
+export function getAssetPath(path: string): string {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
+  return `${basePath}${path}`
+}
+
 export function isValidFigmaUrl(url: string): boolean {
   try {
     const parsed = new URL(url)
