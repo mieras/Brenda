@@ -116,7 +116,10 @@ export default function BrendaSheet() {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg flex flex-col p-0">
+      <SheetContent className="w-full h-full sm:h-auto sm:max-w-lg flex flex-col p-0 sm:rounded-l-xl"
+        // Mobile: full screen, no rounded corners
+        style={{ maxHeight: '100dvh' }}
+      >
         <SheetHeader className="px-6 py-4 border-b">
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12 border-2 border-amber-200 dark:border-amber-800">

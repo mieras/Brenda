@@ -49,7 +49,11 @@ const menuItems = [
   { label: 'The Power of Brenda', slug: 'the-power-of-brenda', icon: Zap },
 ]
 
-export default function Sidebar() {
+export interface SidebarProps {
+  onNavigate?: () => void
+}
+
+export default function Sidebar({ onNavigate }: SidebarProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
 
@@ -92,6 +96,7 @@ export default function Sidebar() {
               <Link
                 key={item.slug || 'home'}
                 href={href}
+                onClick={onNavigate}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   isActive
