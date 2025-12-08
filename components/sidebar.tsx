@@ -50,24 +50,27 @@ const menuItems = [
 ]
 
 export interface SidebarProps {
-  isMobile?: boolean
   onNavigate?: () => void
+  isMobile?: boolean
 }
 
 export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
+  
+  // On mobile, always show expanded sidebar (no collapse)
+  const isCollapsed = isMobile ? false : collapsed
 
   return (
     <aside
       className={cn(
         "flex flex-col h-screen border-r bg-card transition-all duration-300 sticky top-0",
-        collapsed ? "w-16" : "w-64"
+        isCollapsed ? "w-16" : "w-64"
       )}
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
-        {!collapsed && (
+        {!isCollapsed && (
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
               <Sparkles className="h-4 w-4 text-primary-foreground" />
@@ -75,14 +78,16 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
             <span className="font-semibold text-lg">Brenda</span>
           </div>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => setCollapsed(!collapsed)}
-        >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </Button>
+        {!isMobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setCollapsed(!collapsed)}
+          >
+            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
+        )}
       </div>
 
       {/* Navigation */}
@@ -90,7 +95,10 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
         <nav className="px-2 space-y-1">
           {menuItems.map((item) => {
             const href = item.slug ? `/guidelines/${item.slug}` : '/'
-            const isActive = pathname === href
+            // Normalize paths (remove trailing slashes for comparison)
+            const normalizedPathname = pathname.replace(/\/$/, '') || '/'
+            const normalizedHref = href.replace(/\/$/, '') || '/'
+            const isActive = normalizedPathname === normalizedHref
             const Icon = item.icon
 
             return (
@@ -101,14 +109,14 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                  collapsed && "justify-center px-2"
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  isCollapsed && "justify-center px-2"
                 )}
-                title={collapsed ? item.label : undefined}
+                title={isCollapsed ? item.label : undefined}
               >
-                <Icon className="h-4 w-4 shrink-0" />
-                {!collapsed && <span>{item.label}</span>}
+                <Icon className={cn("h-4 w-4 shrink-0", isActive && "text-primary")} />
+                {!isCollapsed && <span>{item.label}</span>}
               </Link>
             )
           })}
@@ -119,10 +127,10 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
       <Separator />
       <div className={cn(
         "p-4 flex items-center",
-        collapsed ? "justify-center" : "justify-between"
+        isCollapsed ? "justify-center" : "justify-between"
       )}>
         <ThemeToggle />
-        {!collapsed && (
+        {!isCollapsed && (
           <span className="text-xs text-muted-foreground">v1.0</span>
         )}
       </div>
