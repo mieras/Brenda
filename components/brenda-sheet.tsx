@@ -12,7 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Separator } from '@/components/ui/separator'
 import { 
@@ -119,9 +119,10 @@ export default function BrendaSheet({ open, onOpenChange }: BrendaSheetProps) {
       <SheetContent className="w-full sm:max-w-lg flex flex-col p-0">
         <SheetHeader className="px-6 py-4 border-b">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
-              <Sparkles className="h-5 w-5 text-primary-foreground" />
-            </div>
+            <Avatar className="h-12 w-12 border-2 border-amber-200 dark:border-amber-800">
+              <AvatarImage src="/images/brenda-avatar.png" alt="Brenda" className="object-cover object-top" />
+              <AvatarFallback className="bg-amber-100 text-amber-800">B</AvatarFallback>
+            </Avatar>
             <div>
               <SheetTitle className="text-left">Chat with Brenda</SheetTitle>
               <SheetDescription className="text-left">
@@ -164,17 +165,15 @@ export default function BrendaSheet({ open, onOpenChange }: BrendaSheetProps) {
                   message.role === 'user' ? "flex-row-reverse" : ""
                 )}
               >
-                <Avatar className={cn(
-                  "h-8 w-8 shrink-0",
-                  message.role === 'user' ? "bg-secondary" : "bg-primary"
-                )}>
-                  <AvatarFallback className={cn(
-                    message.role === 'user' 
-                      ? "bg-secondary text-secondary-foreground" 
-                      : "bg-primary text-primary-foreground"
-                  )}>
-                    {message.role === 'user' ? 'U' : 'B'}
-                  </AvatarFallback>
+                <Avatar className="h-8 w-8 shrink-0">
+                  {message.role === 'assistant' ? (
+                    <>
+                      <AvatarImage src="/images/brenda-avatar.png" alt="Brenda" className="object-cover object-top" />
+                      <AvatarFallback className="bg-amber-100 text-amber-800">B</AvatarFallback>
+                    </>
+                  ) : (
+                    <AvatarFallback className="bg-secondary text-secondary-foreground">U</AvatarFallback>
+                  )}
                 </Avatar>
                 <div
                   className={cn(
@@ -190,8 +189,9 @@ export default function BrendaSheet({ open, onOpenChange }: BrendaSheetProps) {
             ))}
             {isTyping && (
               <div className="flex gap-3 animate-in slide-in-from-bottom-2">
-                <Avatar className="h-8 w-8 shrink-0 bg-primary">
-                  <AvatarFallback className="bg-primary text-primary-foreground">B</AvatarFallback>
+                <Avatar className="h-8 w-8 shrink-0">
+                  <AvatarImage src="/images/brenda-avatar.png" alt="Brenda" className="object-cover object-top" />
+                  <AvatarFallback className="bg-amber-100 text-amber-800">B</AvatarFallback>
                 </Avatar>
                 <div className="bg-muted rounded-2xl px-4 py-2.5">
                   <div className="flex gap-1">

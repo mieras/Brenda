@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   Sparkles,
   ArrowRight,
@@ -62,8 +63,15 @@ export default function Home() {
               </div>
             </div>
             <div className="relative">
-              <div className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-2xl">
-                <Sparkles className="h-20 w-20 md:h-28 md:w-28 text-primary-foreground" />
+              <div className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 flex items-center justify-center shadow-2xl overflow-hidden border-4 border-white dark:border-gray-800">
+                <Image
+                  src="/images/brenda-avatar.png"
+                  alt="Brenda - Your AI Brand Assistant"
+                  width={256}
+                  height={256}
+                  className="w-full h-full object-cover object-top scale-110"
+                  priority
+                />
               </div>
               <div className="absolute -bottom-4 -right-4 bg-card border rounded-xl p-3 shadow-lg">
                 <p className="text-sm font-medium">Always here to help! 👋</p>
