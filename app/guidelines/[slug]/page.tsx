@@ -7,6 +7,26 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
 const guidelines: Record<string, { title: string; description: string; content: string }> = {
+  'colour-palette': {
+    title: 'Colour Palette',
+    description: 'Brand colors and usage guidelines',
+    content: 'Our color palette has been carefully selected to represent our brand values. Always use approved brand colors from our design tokens.'
+  },
+  'typography': {
+    title: 'Typography',
+    description: 'Fonts and type scales',
+    content: 'Typography plays a crucial role in communicating our brand voice. We use a systematic type scale that ensures consistency across all touchpoints.'
+  },
+  'supporting-graphic-elements': {
+    title: 'Supporting Graphic Elements',
+    description: 'Patterns, shapes, and decorative elements',
+    content: 'Supporting graphic elements should complement, not compete with, our primary brand elements.'
+  },
+  'icons': {
+    title: 'Icons',
+    description: 'Icon library and usage',
+    content: 'Icons should be consistent with our design system. Use approved icon sets and maintain consistent sizing and styling.'
+  },
   'our-logos': {
     title: 'Our Logos',
     description: 'Logo usage guidelines and download assets',
@@ -62,6 +82,13 @@ const guidelines: Record<string, { title: string; description: string; content: 
     description: 'Brand strategy and positioning',
     content: 'Our brand is built on the power of positive change and community impact.'
   },
+}
+
+// Required for static export (GitHub Pages)
+export function generateStaticParams() {
+  return Object.keys(guidelines).map((slug) => ({
+    slug,
+  }))
 }
 
 export default function GuidelinePage({ params }: { params: { slug: string } }) {
