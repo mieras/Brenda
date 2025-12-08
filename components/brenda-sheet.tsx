@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Badge } from '@/components/ui/badge'
 import { 
   Send, 
   Upload, 
@@ -25,11 +26,17 @@ import {
   ImageIcon,
   X,
   ExternalLink,
-  Figma
+  Figma,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  ArrowRight
 } from 'lucide-react'
 import { cn, getAssetPath } from '@/lib/utils'
 import { useChat } from '@/lib/chat-context'
+import { useReports } from '@/lib/report-context'
 import { getResponse, getWelcomeMessage } from '@/lib/mockResponses'
+import { Report, Finding } from '@/lib/reports'
 
 // Figma URL pattern
 const FIGMA_URL_REGEX = /https?:\/\/(www\.)?figma\.com\/(file|design|proto)\/([a-zA-Z0-9]+)/
@@ -41,10 +48,20 @@ interface Attachment {
   preview?: string
 }
 
+interface AnalysisResult {
+  reportId: string
+  score: number
+  highlights: {
+    status: 'pass' | 'warning' | 'fail'
+    text: string
+  }[]
+}
+
 interface Message {
   role: 'user' | 'assistant'
   content: string
   attachment?: Attachment
+  analysis?: AnalysisResult
 }
 
 const roles = [
@@ -80,8 +97,81 @@ function extractFigmaUrl(text: string): string | null {
   return match ? match[0] : null
 }
 
+// Generate a mock report from an attachment
+function generateMockReport(attachment: Attachment): Report {
+  const reportId = `report-${Date.now()}`
+  const isFigma = attachment.type === 'figma'
+  
+  const findings: Finding[] = [
+    {
+      id: `${reportId}-f1`,
+      category: 'Logo Usage',
+      title: isFigma ? 'Logo placement correct' : 'Logo placement needs attention',
+      description: isFigma 
+        ? 'The logo is correctly positioned with proper clear space.'
+        : 'The logo appears to be placed on an unapproved background color.',
+      status: isFigma ? 'pass' : 'fail',
+      suggestion: isFigma ? undefined : 'Move the logo to an approved background area.',
+      guidelineLink: '/guidelines/our-logos'
+    },
+    {
+      id: `${reportId}-f2`,
+      category: 'Color',
+      title: 'Brand colors in use',
+      description: 'Primary brand colors are being used throughout the design.',
+      status: 'pass'
+    },
+    {
+      id: `${reportId}-f3`,
+      category: 'Typography',
+      title: 'Font weight variation',
+      description: 'Consider using bolder weights for headings to improve hierarchy.',
+      status: 'warning',
+      suggestion: 'Use font-weight 600 or 700 for headings.',
+      guidelineLink: '/guidelines/typography'
+    },
+    {
+      id: `${reportId}-f4`,
+      category: 'Spacing',
+      title: 'Consistent spacing applied',
+      description: 'Spacing follows our 8px grid system.',
+      status: 'pass'
+    },
+    {
+      id: `${reportId}-f5`,
+      category: 'Accessibility',
+      title: 'Contrast ratios adequate',
+      description: 'Text contrast meets WCAG AA standards.',
+      status: 'pass'
+    }
+  ]
+
+  const passed = findings.filter(f => f.status === 'pass').length
+  const warnings = findings.filter(f => f.status === 'warning').length
+  const failed = findings.filter(f => f.status === 'fail').length
+  const score = Math.round((passed / findings.length) * 100 - (failed * 10) - (warnings * 5))
+
+  return {
+    id: reportId,
+    createdAt: new Date(),
+    fileName: attachment.name || (isFigma ? 'Figma design' : 'Uploaded image'),
+    fileType: attachment.type,
+    fileUrl: attachment.url,
+    figmaUrl: isFigma ? attachment.url : undefined,
+    summary: {
+      passed,
+      warnings,
+      failed,
+      score: Math.max(0, Math.min(100, score))
+    },
+    findings,
+    chatHistory: []
+  }
+}
+
 export default function BrendaSheet() {
   const { isOpen: open, closeChat } = useChat()
+  const { openReportData } = useReports()
   const onOpenChange = (newOpen: boolean) => {
     if (!newOpen) closeChat()
   }
@@ -91,6 +181,7 @@ export default function BrendaSheet() {
   const [isTyping, setIsTyping] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [pendingAttachment, setPendingAttachment] = useState<Attachment | null>(null)
+  const [currentReport, setCurrentReport] = useState<Report | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -133,6 +224,13 @@ export default function BrendaSheet() {
     }
   }, [input, pendingAttachment])
 
+  const handleViewFullReport = (reportId: string) => {
+    if (currentReport && currentReport.id === reportId) {
+      closeChat()
+      openReportData(currentReport)
+    }
+  }
+
   const handleSend = async () => {
     if (!input.trim() && !pendingAttachment) return
 
@@ -146,13 +244,50 @@ export default function BrendaSheet() {
 
     // Simulate AI response
     setTimeout(() => {
-      let response = getResponse(userMessage, selectedRole || null)
       if (attachment) {
-        response = attachment.type === 'figma' 
-          ? "I've analyzed your Figma design. Here's what I found:\n\n✅ Color usage looks consistent with brand guidelines\n⚠️ Some spacing issues detected in the header area\n✅ Typography follows the type scale\n\nWould you like me to go into more detail on any of these points?"
-          : "I've analyzed your uploaded image. Here's my feedback:\n\n✅ Overall composition is well-balanced\n⚠️ The contrast ratio on the CTA button might not meet accessibility standards\n✅ Brand colors are used correctly\n\nWant me to elaborate on any specific aspect?"
+        // Generate a report for the attachment
+        const report = generateMockReport(attachment)
+        setCurrentReport(report)
+
+        // Create highlights from report findings
+        const highlights = report.findings
+          .filter(f => f.status !== 'pass')
+          .slice(0, 3)
+          .map(f => ({
+            status: f.status,
+            text: f.title
+          }))
+
+        // Add some passing items too
+        const passItems = report.findings
+          .filter(f => f.status === 'pass')
+          .slice(0, 2)
+          .map(f => ({
+            status: f.status as 'pass' | 'warning' | 'fail',
+            text: f.title
+          }))
+
+        const allHighlights = [...highlights, ...passItems]
+
+        const analysis: AnalysisResult = {
+          reportId: report.id,
+          score: report.summary.score,
+          highlights: allHighlights
+        }
+
+        const response = attachment.type === 'figma' 
+          ? "I've analyzed your Figma design. Here are the key findings:"
+          : "I've analyzed your uploaded design. Here are the key findings:"
+
+        setMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: response,
+          analysis
+        }])
+      } else {
+        const response = getResponse(userMessage, selectedRole || null)
+        setMessages(prev => [...prev, { role: 'assistant', content: response }])
       }
-      setMessages(prev => [...prev, { role: 'assistant', content: response }])
       setIsTyping(false)
     }, 1500 + Math.random() * 1000)
   }
@@ -221,6 +356,14 @@ export default function BrendaSheet() {
   const filteredStarters = selectedRole
     ? starters.filter(s => s.roles.includes(selectedRole))
     : starters
+
+  const StatusIcon = ({ status }: { status: 'pass' | 'warning' | 'fail' }) => {
+    switch (status) {
+      case 'pass': return <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+      case 'warning': return <AlertTriangle className="h-3.5 w-3.5 text-yellow-600" />
+      case 'fail': return <XCircle className="h-3.5 w-3.5 text-red-600" />
+    }
+  }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -300,7 +443,7 @@ export default function BrendaSheet() {
                     <AvatarFallback className="bg-secondary text-secondary-foreground">U</AvatarFallback>
                   )}
                 </Avatar>
-                <div className="flex flex-col gap-2 max-w-[80%]">
+                <div className="flex flex-col gap-2 max-w-[85%]">
                   {/* Attachment */}
                   {message.attachment && (
                     <div className={cn(
@@ -341,6 +484,47 @@ export default function BrendaSheet() {
                       )}
                     >
                       {message.content}
+                    </div>
+                  )}
+                  {/* Analysis Results */}
+                  {message.analysis && (
+                    <div className="bg-card border rounded-xl p-3 space-y-3">
+                      {/* Score */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Brand Score</span>
+                        <Badge 
+                          variant="outline" 
+                          className={cn(
+                            "font-bold",
+                            message.analysis.score >= 80 ? "border-green-500 text-green-600" :
+                            message.analysis.score >= 60 ? "border-yellow-500 text-yellow-600" :
+                            "border-red-500 text-red-600"
+                          )}
+                        >
+                          {message.analysis.score}/100
+                        </Badge>
+                      </div>
+                      
+                      {/* Highlights */}
+                      <div className="space-y-1.5">
+                        {message.analysis.highlights.map((h, i) => (
+                          <div key={i} className="flex items-center gap-2 text-sm">
+                            <StatusIcon status={h.status} />
+                            <span className="text-muted-foreground">{h.text}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* View Full Report Button */}
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        className="w-full gap-2"
+                        onClick={() => handleViewFullReport(message.analysis!.reportId)}
+                      >
+                        View full report
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
                     </div>
                   )}
                 </div>

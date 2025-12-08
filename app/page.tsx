@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { getAssetPath } from '@/lib/utils'
 import { HeroButtons } from '@/components/hero-buttons'
 import { FooterCTA } from '@/components/footer-cta'
+import { RecentActivity } from '@/components/recent-activity'
 import {
   Sparkles,
   ArrowRight,
@@ -16,7 +17,6 @@ import {
   Grid3X3,
   MessageCircle,
   CheckCircle2,
-  Clock,
   TrendingUp
 } from 'lucide-react'
 
@@ -25,12 +25,6 @@ const quickLinks = [
   { title: 'Typography', description: 'Fonts & type scale', icon: Type, href: '/guidelines/typography' },
   { title: 'Graphic Elements', description: 'Patterns & shapes', icon: Shapes, href: '/guidelines/supporting-graphic-elements' },
   { title: 'Icons', description: 'Icon library', icon: Grid3X3, href: '/guidelines/icons' },
-]
-
-const recentActivity = [
-  { type: 'scan', title: 'Homepage banner review', time: '2 hours ago', status: 'success' },
-  { type: 'chat', title: 'Logo clear space question', time: 'Yesterday', status: 'success' },
-  { type: 'scan', title: 'Mobile app screens', time: '3 days ago', status: 'warning' },
 ]
 
 export default function Home() {
@@ -153,36 +147,7 @@ export default function Home() {
           </Card>
 
           {/* Recent Activity */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-primary" />
-                Recent Activity
-              </CardTitle>
-              <CardDescription>Your latest interactions with Brenda</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <div className={`h-2 w-2 rounded-full ${
-                      activity.status === 'success' ? 'bg-green-500' : 'bg-yellow-500'
-                    }`} />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{activity.title}</p>
-                      <p className="text-sm text-muted-foreground">{activity.time}</p>
-                    </div>
-                    <Badge variant="outline" className="shrink-0">
-                      {activity.type === 'scan' ? 'Scan' : 'Chat'}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-              <Button variant="ghost" className="w-full mt-4" asChild>
-                <Link href="#">View all activity</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <RecentActivity />
         </div>
       </section>
 

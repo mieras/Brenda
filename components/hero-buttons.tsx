@@ -13,7 +13,7 @@ export function HeroButtons() {
         <MessageCircle className="h-4 w-4" />
         Chat with Brenda
       </Button>
-      <Button size="lg" variant="outline" className="gap-2" onClick={openChat}>
+      <Button size="lg" variant="secondary" className="gap-2" onClick={openChat}>
         <Upload className="h-4 w-4" />
         Upload Design
       </Button>

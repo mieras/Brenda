@@ -27,11 +27,16 @@ import {
   Zap,
   ChevronLeft,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Clock
 } from 'lucide-react'
 
+const mainItems = [
+  { label: 'Homepage', href: '/', icon: Home },
+  { label: 'My Activity', href: '/activity', icon: Clock },
+]
+
 const menuItems = [
-  { label: 'Homepage', slug: '', icon: Home },
   { label: 'Our Logos', slug: 'our-logos', icon: Circle },
   { label: 'Colour Palette', slug: 'colour-palette', icon: Palette },
   { label: 'Typography', slug: 'typography', icon: Type },
@@ -72,8 +77,8 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
       <div className="flex items-center justify-between p-4 border-b">
         {!isCollapsed && (
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <Sparkles className="h-4 w-4 text-primary-foreground" />
+            <div className="h-8 w-8 rounded-lg bg-[#BB0020] flex items-center justify-center">
+              <Sparkles className="h-4 w-4 text-white" />
             </div>
             <span className="font-semibold text-lg">Brenda</span>
           </div>
@@ -93,9 +98,41 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
       {/* Navigation */}
       <ScrollArea className="flex-1 py-2">
         <nav className="px-2 space-y-1">
+          {/* Main items */}
+          {mainItems.map((item) => {
+            const normalizedPathname = pathname.replace(/\/$/, '') || '/'
+            const normalizedHref = item.href.replace(/\/$/, '') || '/'
+            const isActive = normalizedPathname === normalizedHref
+            const Icon = item.icon
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onNavigate}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-[#0050A5]/10 text-[#0050A5]"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  isCollapsed && "justify-center px-2"
+                )}
+                title={isCollapsed ? item.label : undefined}
+              >
+                <Icon className={cn("h-4 w-4 shrink-0", isActive && "text-[#0050A5]")} />
+                {!isCollapsed && <span>{item.label}</span>}
+              </Link>
+            )
+          })}
+
+          {/* Guidelines section */}
+          {!isCollapsed && (
+            <p className="text-xs font-medium text-muted-foreground px-3 pt-4 pb-2">Guidelines</p>
+          )}
+          {isCollapsed && <Separator className="my-2" />}
+
           {menuItems.map((item) => {
-            const href = item.slug ? `/guidelines/${item.slug}` : '/'
-            // Normalize paths (remove trailing slashes for comparison)
+            const href = `/guidelines/${item.slug}`
             const normalizedPathname = pathname.replace(/\/$/, '') || '/'
             const normalizedHref = href.replace(/\/$/, '') || '/'
             const isActive = normalizedPathname === normalizedHref
@@ -103,19 +140,19 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
 
             return (
               <Link
-                key={item.slug || 'home'}
+                key={item.slug}
                 href={href}
                 onClick={onNavigate}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-primary/10 text-primary"
+                    ? "bg-[#0050A5]/10 text-[#0050A5]"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   isCollapsed && "justify-center px-2"
                 )}
                 title={isCollapsed ? item.label : undefined}
               >
-                <Icon className={cn("h-4 w-4 shrink-0", isActive && "text-primary")} />
+                <Icon className={cn("h-4 w-4 shrink-0", isActive && "text-[#0050A5]")} />
                 {!isCollapsed && <span>{item.label}</span>}
               </Link>
             )

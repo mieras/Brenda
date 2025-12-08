@@ -3,14 +3,20 @@
 import { useState } from 'react'
 import Sidebar from '@/components/sidebar'
 import BrendaSheet from '@/components/brenda-sheet'
+import ReportViewer from '@/components/report-viewer'
+import { UserMenu } from '@/components/user-menu'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { MessageCircle, Menu, Sparkles } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { ChatProvider, useChat } from '@/lib/chat-context'
+import { ReportProvider, useReports } from '@/lib/report-context'
+import { UserProvider } from '@/lib/user-context'
+import Link from 'next/link'
 
 function AppShellContent({ children }: { children: React.ReactNode }) {
   const { openChat } = useChat()
+  const { currentReport, isViewerOpen, closeReport } = useReports()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
@@ -21,9 +27,14 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-0">
+        {/* Desktop Header */}
+        <header className="hidden md:flex items-center justify-end px-6 py-4 border-b bg-card/80 backdrop-blur-sm sticky top-0 z-40 shrink-0">
+          <UserMenu />
+        </header>
+
         {/* Mobile Header */}
-        <header className="md:hidden flex items-center justify-between px-4 h-14 border-b bg-card">
+        <header className="md:hidden flex items-center justify-between px-4 h-14 border-b bg-card shrink-0">
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -36,20 +47,23 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
             </SheetContent>
           </Sheet>
           
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
-              <Sparkles className="h-4 w-4 text-primary-foreground" />
+          <Link href="/" className="flex items-center gap-2">
+            <div className="h-7 w-7 rounded-lg bg-[#BB0020] flex items-center justify-center">
+              <Sparkles className="h-4 w-4 text-white" />
             </div>
             <span className="font-semibold">Brenda</span>
-          </div>
+          </Link>
           
-          <Button variant="ghost" size="icon" onClick={openChat}>
-            <MessageCircle className="h-5 w-5" />
-            <span className="sr-only">Chat with Brenda</span>
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" onClick={openChat}>
+              <MessageCircle className="h-5 w-5" />
+              <span className="sr-only">Chat with Brenda</span>
+            </Button>
+            <UserMenu />
+          </div>
         </header>
 
-        <main className="flex-1 overflow-hidden">
+        <main className="flex-1 overflow-auto">
           {children}
         </main>
       </div>
@@ -73,15 +87,21 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
 
       {/* Brenda Chat Sheet */}
       <BrendaSheet />
+
+      {/* Report Viewer */}
+      <ReportViewer report={currentReport} open={isViewerOpen} onClose={closeReport} />
     </div>
   )
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <ChatProvider>
-      <AppShellContent>{children}</AppShellContent>
-    </ChatProvider>
+    <UserProvider>
+      <ChatProvider>
+        <ReportProvider>
+          <AppShellContent>{children}</AppShellContent>
+        </ReportProvider>
+      </ChatProvider>
+    </UserProvider>
   )
 }
-
