@@ -28,6 +28,7 @@ import {
   MessageSquare
 } from 'lucide-react'
 import { cn, getAssetPath } from '@/lib/utils'
+import { useChat } from '@/lib/chat-context'
 import { getResponse, getWelcomeMessage } from '@/lib/mockResponses'
 
 interface Message {
@@ -52,12 +53,11 @@ const starters = [
   { text: 'Explain guideline', icon: MessageSquare, roles: ['designer', 'developer', 'content', 'brand', 'agency'] },
 ]
 
-interface BrendaSheetProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}
-
-export default function BrendaSheet({ open, onOpenChange }: BrendaSheetProps) {
+export default function BrendaSheet() {
+  const { isOpen: open, closeChat } = useChat()
+  const onOpenChange = (newOpen: boolean) => {
+    if (!newOpen) closeChat()
+  }
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [selectedRole, setSelectedRole] = useState<string>('')

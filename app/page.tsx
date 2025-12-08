@@ -5,6 +5,8 @@ import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
 import Image from 'next/image'
 import { getAssetPath } from '@/lib/utils'
+import { HeroButtons } from '@/components/hero-buttons'
+import { FooterCTA } from '@/components/footer-cta'
 import {
   Sparkles,
   ArrowRight,
@@ -13,7 +15,6 @@ import {
   Shapes,
   Grid3X3,
   MessageCircle,
-  Upload,
   CheckCircle2,
   Clock,
   TrendingUp
@@ -52,16 +53,7 @@ export default function Home() {
                 Your virtual art director and trusted companion for all things brand. 
                 Get instant guidance on design, voice & tone, and brand consistency.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
-                <Button size="lg" className="gap-2">
-                  <MessageCircle className="h-4 w-4" />
-                  Chat with Brenda
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2">
-                  <Upload className="h-4 w-4" />
-                  Upload Design
-                </Button>
-              </div>
+              <HeroButtons />
             </div>
             <div className="relative">
               <div className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 flex items-center justify-center shadow-2xl overflow-hidden border-4 border-white dark:border-gray-800">
@@ -195,18 +187,7 @@ export default function Home() {
       </section>
 
       {/* Footer CTA */}
-      <section className="bg-muted/50">
-        <div className="max-w-5xl mx-auto px-6 py-12 text-center">
-          <h2 className="text-2xl font-semibold mb-2">Ready to create on-brand magic?</h2>
-          <p className="text-muted-foreground mb-6">
-            Brenda is always here to help. Just click the chat button to get started.
-          </p>
-          <Button size="lg" className="gap-2">
-            <Sparkles className="h-4 w-4" />
-            Start a conversation
-          </Button>
-        </div>
-      </section>
+      <FooterCTA />
     </div>
   )
 }

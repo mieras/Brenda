@@ -1,14 +1,14 @@
 'use client'
 
-import { useState } from 'react'
 import Sidebar from '@/components/sidebar'
 import BrendaSheet from '@/components/brenda-sheet'
 import { Button } from '@/components/ui/button'
 import { MessageCircle } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { ChatProvider, useChat } from '@/lib/chat-context'
 
-export function AppShell({ children }: { children: React.ReactNode }) {
-  const [chatOpen, setChatOpen] = useState(false)
+function AppShellContent({ children }: { children: React.ReactNode }) {
+  const { isOpen, openChat, toggleChat } = useChat()
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -21,7 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            onClick={() => setChatOpen(true)}
+            onClick={openChat}
             size="lg"
             className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all z-50 bg-primary hover:bg-primary/90"
           >
@@ -35,8 +35,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </Tooltip>
 
       {/* Brenda Chat Sheet */}
-      <BrendaSheet open={chatOpen} onOpenChange={setChatOpen} />
+      <BrendaSheet />
     </div>
+  )
+}
+
+export function AppShell({ children }: { children: React.ReactNode }) {
+  return (
+    <ChatProvider>
+      <AppShellContent>{children}</AppShellContent>
+    </ChatProvider>
   )
 }
 
