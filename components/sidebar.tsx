@@ -50,10 +50,11 @@ const menuItems = [
 ]
 
 export interface SidebarProps {
+  isMobile?: boolean
   onNavigate?: () => void
 }
 
-export default function Sidebar({ onNavigate }: SidebarProps) {
+export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
 

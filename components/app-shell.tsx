@@ -32,7 +32,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-72">
-              <Sidebar onNavigate={() => setMobileMenuOpen(false)} />
+              <Sidebar onNavigate={() => setMobileMenuOpen(false)} isMobile />
             </SheetContent>
           </Sheet>
           
