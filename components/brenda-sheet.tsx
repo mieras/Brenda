@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback, DragEvent } from 'react'
 import {
   Sheet,
   SheetContent,
@@ -11,29 +11,40 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { Separator } from '@/components/ui/separator'
 import { 
   Send, 
-  Sparkles, 
   Upload, 
-  Link2, 
   Palette, 
   Type, 
   Layout, 
   Accessibility,
   Wand2,
-  MessageSquare
+  MessageSquare,
+  ImageIcon,
+  X,
+  ExternalLink,
+  Figma
 } from 'lucide-react'
 import { cn, getAssetPath } from '@/lib/utils'
 import { useChat } from '@/lib/chat-context'
 import { getResponse, getWelcomeMessage } from '@/lib/mockResponses'
 
+// Figma URL pattern
+const FIGMA_URL_REGEX = /https?:\/\/(www\.)?figma\.com\/(file|design|proto)\/([a-zA-Z0-9]+)/
+
+interface Attachment {
+  type: 'image' | 'figma'
+  url: string
+  name?: string
+  preview?: string
+}
+
 interface Message {
   role: 'user' | 'assistant'
   content: string
+  attachment?: Attachment
 }
 
 const roles = [
@@ -53,6 +64,22 @@ const starters = [
   { text: 'Explain guideline', icon: MessageSquare, roles: ['designer', 'developer', 'content', 'brand', 'agency'] },
 ]
 
+// Truncate Figma URL for display
+function truncateFigmaUrl(url: string): string {
+  const match = url.match(FIGMA_URL_REGEX)
+  if (match) {
+    const fileId = match[3]
+    return `figma.com/${fileId.substring(0, 8)}...`
+  }
+  return url.length > 30 ? url.substring(0, 30) + '...' : url
+}
+
+// Check if text contains a Figma URL
+function extractFigmaUrl(text: string): string | null {
+  const match = text.match(FIGMA_URL_REGEX)
+  return match ? match[0] : null
+}
+
 export default function BrendaSheet() {
   const { isOpen: open, closeChat } = useChat()
   const onOpenChange = (newOpen: boolean) => {
@@ -62,8 +89,11 @@ export default function BrendaSheet() {
   const [input, setInput] = useState('')
   const [selectedRole, setSelectedRole] = useState<string>('')
   const [isTyping, setIsTyping] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const [pendingAttachment, setPendingAttachment] = useState<Attachment | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Initialize with welcome message
   useEffect(() => {
@@ -89,20 +119,42 @@ export default function BrendaSheet() {
     }
   }, [open])
 
-  const handleSend = async () => {
-    if (!input.trim()) return
+  // Check for Figma URL in input
+  useEffect(() => {
+    const figmaUrl = extractFigmaUrl(input)
+    if (figmaUrl && !pendingAttachment) {
+      setPendingAttachment({
+        type: 'figma',
+        url: figmaUrl,
+        name: truncateFigmaUrl(figmaUrl)
+      })
+    } else if (!figmaUrl && pendingAttachment?.type === 'figma') {
+      setPendingAttachment(null)
+    }
+  }, [input, pendingAttachment])
 
-    const userMessage = input.trim()
+  const handleSend = async () => {
+    if (!input.trim() && !pendingAttachment) return
+
+    const userMessage = input.trim() || (pendingAttachment ? 'Check this design' : '')
+    const attachment = pendingAttachment
+    
     setInput('')
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }])
+    setPendingAttachment(null)
+    setMessages(prev => [...prev, { role: 'user', content: userMessage, attachment: attachment || undefined }])
     setIsTyping(true)
 
     // Simulate AI response
     setTimeout(() => {
-      const response = getResponse(userMessage, selectedRole || null)
+      let response = getResponse(userMessage, selectedRole || null)
+      if (attachment) {
+        response = attachment.type === 'figma' 
+          ? "I've analyzed your Figma design. Here's what I found:\n\n✅ Color usage looks consistent with brand guidelines\n⚠️ Some spacing issues detected in the header area\n✅ Typography follows the type scale\n\nWould you like me to go into more detail on any of these points?"
+          : "I've analyzed your uploaded image. Here's my feedback:\n\n✅ Overall composition is well-balanced\n⚠️ The contrast ratio on the CTA button might not meet accessibility standards\n✅ Brand colors are used correctly\n\nWant me to elaborate on any specific aspect?"
+      }
       setMessages(prev => [...prev, { role: 'assistant', content: response }])
       setIsTyping(false)
-    }, 1000 + Math.random() * 1000)
+    }, 1500 + Math.random() * 1000)
   }
 
   const handleStarterClick = (text: string) => {
@@ -110,16 +162,86 @@ export default function BrendaSheet() {
     inputRef.current?.focus()
   }
 
+  const handleFileSelect = useCallback((file: File) => {
+    if (!file.type.startsWith('image/')) {
+      return // Only accept images
+    }
+    
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setPendingAttachment({
+        type: 'image',
+        url: e.target?.result as string,
+        name: file.name,
+        preview: e.target?.result as string
+      })
+    }
+    reader.readAsDataURL(file)
+  }, [])
+
+  const handleDragOver = useCallback((e: DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }, [])
+
+  const handleDragLeave = useCallback((e: DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }, [])
+
+  const handleDrop = useCallback((e: DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    const files = e.dataTransfer?.files
+    if (files && files.length > 0) {
+      handleFileSelect(files[0])
+    }
+  }, [handleFileSelect])
+
+  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items
+    if (items) {
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith('image/')) {
+          const file = items[i].getAsFile()
+          if (file) {
+            handleFileSelect(file)
+            e.preventDefault()
+            return
+          }
+        }
+      }
+    }
+  }, [handleFileSelect])
+
   const filteredStarters = selectedRole
     ? starters.filter(s => s.roles.includes(selectedRole))
     : starters
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full h-full sm:h-auto sm:max-w-lg flex flex-col p-0 sm:rounded-l-xl"
-        // Mobile: full screen, no rounded corners
+      <SheetContent 
+        className="w-full h-full sm:h-auto sm:max-w-lg flex flex-col p-0 sm:rounded-l-xl"
         style={{ maxHeight: '100dvh' }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
+        {/* Drop overlay */}
+        {isDragging && (
+          <div className="absolute inset-0 z-50 bg-primary/10 backdrop-blur-sm flex items-center justify-center border-2 border-dashed border-primary rounded-xl m-2">
+            <div className="text-center">
+              <Upload className="h-12 w-12 mx-auto text-primary mb-2" />
+              <p className="text-lg font-medium text-primary">Drop your image here</p>
+              <p className="text-sm text-muted-foreground">PNG, JPG, GIF supported</p>
+            </div>
+          </div>
+        )}
+
         <SheetHeader className="px-6 py-4 border-b">
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12 border-2 border-amber-200 dark:border-amber-800">
@@ -137,7 +259,7 @@ export default function BrendaSheet() {
 
         {/* Role Filter */}
         <div className="px-6 py-3 border-b bg-muted/30">
-          <p className="text-xs text-muted-foreground mb-2">I'm a...</p>
+          <p className="text-xs text-muted-foreground mb-2">I&apos;m a...</p>
           <ToggleGroup
             type="single"
             value={selectedRole}
@@ -178,15 +300,49 @@ export default function BrendaSheet() {
                     <AvatarFallback className="bg-secondary text-secondary-foreground">U</AvatarFallback>
                   )}
                 </Avatar>
-                <div
-                  className={cn(
-                    "rounded-2xl px-4 py-2.5 max-w-[80%] text-sm",
-                    message.role === 'user'
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
+                <div className="flex flex-col gap-2 max-w-[80%]">
+                  {/* Attachment */}
+                  {message.attachment && (
+                    <div className={cn(
+                      "rounded-xl overflow-hidden",
+                      message.role === 'user' ? "bg-primary/90" : "bg-muted"
+                    )}>
+                      {message.attachment.type === 'image' ? (
+                        <img 
+                          src={message.attachment.preview || message.attachment.url} 
+                          alt="Uploaded" 
+                          className="max-w-full max-h-48 object-cover"
+                        />
+                      ) : (
+                        <a 
+                          href={message.attachment.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={cn(
+                            "flex items-center gap-2 px-3 py-2 text-sm hover:opacity-80 transition-opacity",
+                            message.role === 'user' ? "text-primary-foreground" : "text-foreground"
+                          )}
+                        >
+                          <Figma className="h-4 w-4 shrink-0" />
+                          <span className="truncate">{message.attachment.name}</span>
+                          <ExternalLink className="h-3 w-3 shrink-0 opacity-60" />
+                        </a>
+                      )}
+                    </div>
                   )}
-                >
-                  {message.content}
+                  {/* Message content */}
+                  {message.content && (
+                    <div
+                      className={cn(
+                        "rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap",
+                        message.role === 'user'
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
+                      )}
+                    >
+                      {message.content}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -229,28 +385,79 @@ export default function BrendaSheet() {
           </div>
         </div>
 
+        {/* Pending Attachment Preview */}
+        {pendingAttachment && (
+          <div className="px-6 py-2 border-t bg-muted/50">
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-background border">
+              {pendingAttachment.type === 'image' ? (
+                <>
+                  <img 
+                    src={pendingAttachment.preview} 
+                    alt="Preview" 
+                    className="h-12 w-12 object-cover rounded"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{pendingAttachment.name}</p>
+                    <p className="text-xs text-muted-foreground">Ready to send</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="h-12 w-12 rounded bg-muted flex items-center justify-center">
+                    <Figma className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{pendingAttachment.name}</p>
+                    <p className="text-xs text-muted-foreground">Figma design detected</p>
+                  </div>
+                </>
+              )}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 shrink-0"
+                onClick={() => setPendingAttachment(null)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Input */}
         <div className="px-6 py-4 border-t">
           <div className="flex gap-2">
-            <div className="flex gap-1">
-              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
-                <Upload className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
-                <Link2 className="h-4 w-4" />
-              </Button>
-            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) handleFileSelect(file)
+                e.target.value = ''
+              }}
+            />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-10 w-10 shrink-0"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <ImageIcon className="h-4 w-4" />
+            </Button>
             <Input
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-              placeholder="Ask Brenda anything..."
+              onPaste={handlePaste}
+              placeholder="Ask Brenda anything... or paste a Figma URL"
               className="flex-1"
             />
             <Button 
               onClick={handleSend} 
-              disabled={!input.trim()}
+              disabled={!input.trim() && !pendingAttachment}
               size="icon"
               className="h-10 w-10 shrink-0"
             >
@@ -262,4 +469,3 @@ export default function BrendaSheet() {
     </Sheet>
   )
 }
-
