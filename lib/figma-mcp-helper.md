@@ -57,3 +57,4 @@ De volgende componenten ondersteunen nu Figma image URLs:
 3. Voeg error handling toe voor mislukte MCP calls
 4. Voeg loading states toe tijdens het ophalen van screenshots
 
+

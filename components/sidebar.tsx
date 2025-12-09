@@ -28,8 +28,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
-  Clock
+  Clock,
+  X
 } from 'lucide-react'
+import { SheetClose } from '@/components/ui/sheet'
 
 const mainItems = [
   { label: 'Homepage', href: '/', icon: Home },
@@ -75,15 +77,26 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
-        {!isCollapsed && (
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-[#BB0020] flex items-center justify-center">
-              <Sparkles className="h-4 w-4 text-white" />
-            </div>
-            <span className="font-semibold text-lg">Brenda</span>
+        <div className="flex items-center gap-2 flex-1">
+          <div className="h-8 w-8 rounded-lg bg-[#BB0020] flex items-center justify-center">
+            <Sparkles className="h-4 w-4 text-white" />
           </div>
-        )}
-        {!isMobile && (
+          {!isCollapsed && (
+            <span className="font-semibold text-lg">Brenda</span>
+          )}
+        </div>
+        {isMobile ? (
+          <SheetClose asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close menu</span>
+            </Button>
+          </SheetClose>
+        ) : (
           <Button
             variant="ghost"
             size="icon"

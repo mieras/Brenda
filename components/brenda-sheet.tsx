@@ -835,10 +835,10 @@ export default function BrendaSheet() {
                 <button
                   key={starter.text}
                   onClick={() => handleStarterClick(starter)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-full border border-[#0050A5] text-[#0050A5] bg-white dark:bg-background hover:bg-[#0050A5]/5 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-full border border-[#0050A5] text-[#0050A5] bg-white dark:bg-background dark:border-[#0050A5] dark:text-[#0050A5] hover:bg-[#0050A5]/5 dark:hover:bg-[#0050A5]/10 transition-colors"
                 >
-                  <Icon className="h-3.5 w-3.5" />
-                  {starter.text}
+                  <Icon className="h-3.5 w-3.5 shrink-0" />
+                  <span>{starter.text}</span>
                 </button>
               )
             })}

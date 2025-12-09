@@ -16,6 +16,10 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_BASE_PATH: basePath,
   },
+  // Fix workspace root warning by explicitly setting Turbopack root
+  turbopack: {
+    root: __dirname,
+  },
 }
 
 module.exports = nextConfig

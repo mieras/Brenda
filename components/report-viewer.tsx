@@ -95,7 +95,7 @@ export default function ReportViewer({ report, open, onClose }: ReportViewerProp
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="max-w-full w-full h-full max-h-screen p-0 gap-0 flex flex-col m-0 rounded-none left-0 top-0 translate-x-0 translate-y-0">
+      <DialogContent className="max-w-full w-full h-full max-h-screen p-0 gap-0 flex flex-col rounded-none left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95">
         {/* Main layout: 2 columns for left side, 1 for chat */}
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-[2fr_1fr] overflow-hidden">
           {/* Left side: Preview + Findings */}
@@ -139,11 +139,11 @@ export default function ReportViewer({ report, open, onClose }: ReportViewerProp
                 {report.fileType === 'figma' ? (
                   <div className="space-y-3">
                     {report.figmaImageUrl ? (
-                      <div className="relative group">
+                      <div className="relative group flex justify-center">
                         <img 
                           src={report.figmaImageUrl}
                           alt={report.fileName}
-                          className="w-full h-auto rounded-lg border border-border shadow-sm"
+                          className="w-1/2 h-auto rounded-lg border border-border shadow-sm"
                         />
                         <a
                           href={report.figmaUrl}
@@ -172,12 +172,12 @@ export default function ReportViewer({ report, open, onClose }: ReportViewerProp
                     )}
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-3 flex justify-center">
                     {report.fileUrl ? (
                       <img 
                         src={report.fileUrl}
                         alt={report.fileName}
-                        className="w-full h-auto rounded-lg border border-border shadow-sm"
+                        className="w-1/2 h-auto rounded-lg border border-border shadow-sm"
                       />
                     ) : (
                       <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
@@ -208,7 +208,7 @@ export default function ReportViewer({ report, open, onClose }: ReportViewerProp
                 </div>
               </TabsContent>
 
-              <TabsContent value="findings" className="flex-1 overflow-hidden flex flex-col mt-4">
+              <TabsContent value="findings" className="flex-1 overflow-hidden flex flex-col mt-4 data-[state=inactive]:hidden">
                 <div className="px-6 py-4 border-b bg-card shrink-0">
                   <h3 className="font-semibold">Findings ({report.findings.length})</h3>
                 </div>
@@ -226,11 +226,11 @@ export default function ReportViewer({ report, open, onClose }: ReportViewerProp
                                   {finding.status === 'pass' ? 'Pass' : finding.status === 'warning' ? 'Warning' : 'Fail'}
                                 </Badge>
                               </div>
-                              <CardTitle className="text-sm">{finding.title}</CardTitle>
                             </div>
                           </div>
                         </CardHeader>
                         <CardContent className="py-3 px-4 pt-0">
+                          <CardTitle className="text-sm mb-2">{finding.title}</CardTitle>
                           <p className="text-sm text-muted-foreground mb-2">{finding.description}</p>
                           {finding.suggestion && (
                             <p className="text-sm bg-muted p-2 rounded">
@@ -350,11 +350,11 @@ export default function ReportViewer({ report, open, onClose }: ReportViewerProp
                                   {finding.status === 'pass' ? 'Pass' : finding.status === 'warning' ? 'Warning' : 'Fail'}
                                 </Badge>
                               </div>
-                              <CardTitle className="text-sm">{finding.title}</CardTitle>
                             </div>
                           </div>
                         </CardHeader>
                         <CardContent className="py-3 px-4 pt-0">
+                          <CardTitle className="text-sm mb-2">{finding.title}</CardTitle>
                           <p className="text-sm text-muted-foreground mb-2">{finding.description}</p>
                           {finding.suggestion && (
                             <p className="text-sm bg-muted p-2 rounded">

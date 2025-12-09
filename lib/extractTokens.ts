@@ -20,3 +20,4 @@ export function extractCSSVariables(cssContent: string): string {
   return variables
 }
 
+

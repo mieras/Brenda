@@ -6,7 +6,7 @@ import BrendaSheet from '@/components/brenda-sheet'
 import ReportViewer from '@/components/report-viewer'
 import { UserMenu } from '@/components/user-menu'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 import { MessageCircle, Menu, Sparkles } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { ChatProvider, useChat } from '@/lib/chat-context'
@@ -44,6 +44,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-72">
               <Sidebar onNavigate={() => setMobileMenuOpen(false)} isMobile />
+              <SheetTitle className="sr-only">Navigation menu</SheetTitle>
             </SheetContent>
           </Sheet>
           

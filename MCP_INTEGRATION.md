@@ -134,3 +134,4 @@ Voeg loading states toe:
 4. ⏳ Loading states toevoegen
 5. ⏳ Testen met echte Figma URLs
 
+

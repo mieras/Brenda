@@ -69,3 +69,4 @@ export function isValidPdfFile(file: File): boolean {
   return file.type === ALLOWED_PDF_TYPE
 }
 
+

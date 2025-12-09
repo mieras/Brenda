@@ -73,3 +73,4 @@ export function generateMockScanReport(file: File | string): string {
   return reportText
 }
 
+

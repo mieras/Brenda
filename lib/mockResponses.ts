@@ -53,3 +53,4 @@ export function getResponse(
   return "I'm here to help with brand guidelines, design validation, and answering questions about our brand standards. You can ask me about logos, colors, typography, spacing, accessibility, or upload a design for review. What would you like to know?"
 }
 
+

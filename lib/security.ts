@@ -31,3 +31,4 @@ export function isPDFSafe(file: File): Promise<boolean> {
   return Promise.resolve(file.type === 'application/pdf')
 }
 
+

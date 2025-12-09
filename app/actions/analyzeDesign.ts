@@ -52,3 +52,4 @@ export async function analyzeDesign(file: File): Promise<AnalyzeDesignResult> {
   // return processVisionResults(visionResult)
 }
 
+
