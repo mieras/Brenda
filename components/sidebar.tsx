@@ -200,18 +200,10 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
   // Get section visibility for current role
   const sectionVisibility = useMemo(() => getSectionVisibility(user.role), [user.role])
   
-  // Get default open sections based on role
-  const defaultOpenSections = useMemo(() => {
-    return sections
-      .filter(section => sectionVisibility[section.id])
-      .map(section => section.id)
-  }, [sectionVisibility])
-
-  // Determine which sections should be open based on current pathname
-  const initialOpenSections = useMemo(() => {
-    const open: string[] = []
-    sections.forEach((section) => {
-      if (!sectionVisibility[section.id]) return
+  // Determine which section should be open based on current pathname (single open)
+  const initialOpenSection = useMemo(() => {
+    for (const section of sections) {
+      if (!sectionVisibility[section.id]) continue
       
       // Check if any item in this section matches current path
       const hasActiveItem = section.items.some(item => {
@@ -227,21 +219,40 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
       )
       
       if (hasActiveItem) {
-        open.push(section.id)
-      } else if (sectionVisibility[section.id] && defaultOpenSections.includes(section.id)) {
-        // Keep sections open that are visible by default
-        open.push(section.id)
+        return section.id
+      }
+    }
+    // If no active item found, return undefined (nothing open by default)
+    return undefined
+  }, [pathname, sectionVisibility])
+
+  const [openSection, setOpenSection] = useState<string | undefined>(initialOpenSection)
+  
+  // State for nested accordions (subsections) - one per parent section
+  const [openSubsections, setOpenSubsections] = useState<Record<string, string | undefined>>({})
+
+  // Update open section when pathname changes
+  useEffect(() => {
+    setOpenSection(initialOpenSection)
+    
+    // Also update nested accordion states based on current path
+    const newOpenSubsections: Record<string, string | undefined> = {}
+    sections.forEach((section) => {
+      if (section.subsections) {
+        const activeSubsection = section.subsections.find(subsection => 
+          subsection.items.some(item => {
+            const normalizedPathname = pathname.replace(/\/$/, '') || '/'
+            const normalizedHref = item.href.replace(/\/$/, '') || '/'
+            return normalizedPathname === normalizedHref
+          })
+        )
+        if (activeSubsection) {
+          newOpenSubsections[section.id] = activeSubsection.label
+        }
       }
     })
-    return open.length > 0 ? open : defaultOpenSections
-  }, [pathname, sectionVisibility, defaultOpenSections])
-
-  const [openSections, setOpenSections] = useState<string[]>(initialOpenSections)
-
-  // Update open sections when pathname changes
-  useEffect(() => {
-    setOpenSections(initialOpenSections)
-  }, [initialOpenSections])
+    setOpenSubsections(newOpenSubsections)
+  }, [initialOpenSection, pathname])
 
   const renderNavItem = (item: NavItem, isActive: boolean) => {
     const Icon = item.icon
@@ -268,18 +279,18 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "flex flex-col h-screen border-r bg-card transition-all duration-300 sticky top-0",
+        "flex flex-col h-screen border-r-gray-500/10  bg-card transition-all duration-300 sticky top-0",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex items-center justify-between p-4 border-b bg-[#E30027]">
         <div className="flex items-center gap-2 flex-1">
           <div className="h-8 w-8 rounded-lg bg-[#BB0020] flex items-center justify-center">
             <Sparkles className="h-4 w-4 text-white" />
           </div>
           {!isCollapsed && (
-            <span className="font-semibold text-lg">Brenda</span>
+            <span className="font-semibold text-lg text-white">Brenda</span>
           )}
         </div>
         {isMobile ? (
@@ -287,7 +298,7 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
+              className="h-8 w-8 text-white hover:bg-white/10 hover:text-white"
             >
               <X className="h-4 w-4" />
               <span className="sr-only">Close menu</span>
@@ -297,7 +308,7 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 text-white hover:bg-white/10 hover:text-white"
             onClick={() => setCollapsed(!collapsed)}
           >
             {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -321,9 +332,10 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
           {/* Collapsible sections */}
           {!isCollapsed ? (
             <Accordion
-              type="multiple"
-              value={openSections}
-              onValueChange={setOpenSections}
+              type="single"
+              value={openSection}
+              onValueChange={(value) => setOpenSection(value)}
+              collapsible
               className="w-full"
             >
               {sections.map((section) => {
@@ -353,15 +365,11 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
                         {/* Subsections (for Brand & Design) - Nested Accordions */}
                         {section.subsections && section.subsections.length > 0 && (
                           <Accordion 
-                            type="multiple" 
+                            type="single"
+                            collapsible
                             className="w-full mt-2"
-                            defaultValue={section.subsections.filter(subsection => 
-                              subsection.items.some(item => {
-                                const normalizedPathname = pathname.replace(/\/$/, '') || '/'
-                                const normalizedHref = item.href.replace(/\/$/, '') || '/'
-                                return normalizedPathname === normalizedHref
-                              })
-                            ).map(s => s.label)}
+                            value={openSubsections[section.id]}
+                            onValueChange={(value) => setOpenSubsections(prev => ({ ...prev, [section.id]: value }))}
                           >
                             {section.subsections.map((subsection) => {
                               return (

@@ -47,15 +47,15 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="gap-2 px-2">
+        <Button variant="ghost" className="gap-2 px-2 text-white hover:bg-white/10 hover:text-white">
           <Avatar className="h-8 w-8">
             <AvatarImage src={user.avatar} alt={user.name} />
-            <AvatarFallback className="text-xs bg-primary/10 text-primary">
+            <AvatarFallback className="text-xs bg-white/20 text-white">
               {getInitials(user.name)}
             </AvatarFallback>
           </Avatar>
-          <span className="hidden sm:inline text-sm font-medium">{user.name.split(' ')[0]}</span>
-          <ChevronDown className="h-3 w-3 text-muted-foreground" />
+          <span className="hidden sm:inline text-sm font-medium text-white">{user.name.split(' ')[0]}</span>
+          <ChevronDown className="h-3 w-3 text-white/80" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-64" align="end">

@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import ComingSoon from '@/components/coming-soon'
 import { ArrowLeft, Code, FileText, Palette, ExternalLink, CheckCircle2, XCircle } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -237,7 +237,7 @@ export default function ComponentPage({ params }: { params: { slug: string } }) 
   const component = components[params.slug]
 
   if (!component) {
-    notFound()
+    return <ComingSoon />
   }
 
   return (

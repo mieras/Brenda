@@ -29,15 +29,15 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-0">
         {/* Desktop Header */}
-        <header className="hidden md:flex items-center justify-end px-6 py-4 border-b bg-card/80 backdrop-blur-sm sticky top-0 z-40 shrink-0">
+        <header className="hidden md:flex items-center justify-end px-6 py-4 border-b bg-[#E30027] backdrop-blur-sm sticky top-0 z-40 shrink-0">
           <UserMenu />
         </header>
 
         {/* Mobile Header */}
-        <header className="md:hidden flex items-center justify-between px-4 h-14 border-b bg-card shrink-0">
+        <header className="md:hidden flex items-center justify-between px-4 h-14 border-b bg-[#E30027] shrink-0">
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 hover:text-white">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Open menu</span>
               </Button>
@@ -52,11 +52,11 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
             <div className="h-7 w-7 rounded-lg bg-[#BB0020] flex items-center justify-center">
               <Sparkles className="h-4 w-4 text-white" />
             </div>
-            <span className="font-semibold">Brenda</span>
+            <span className="font-semibold text-white">Brenda</span>
           </Link>
           
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={openChat}>
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 hover:text-white" onClick={openChat}>
               <MessageCircle className="h-5 w-5" />
               <span className="sr-only">Chat with Brenda</span>
             </Button>

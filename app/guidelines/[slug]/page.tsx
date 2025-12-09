@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import ComingSoon from '@/components/coming-soon'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -95,7 +95,7 @@ export default function GuidelinePage({ params }: { params: { slug: string } }) 
   const guideline = guidelines[params.slug]
 
   if (!guideline) {
-    notFound()
+    return <ComingSoon />
   }
 
   return (
