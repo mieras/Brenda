@@ -191,9 +191,9 @@ export default function ReportViewer({ report, open, onClose }: ReportViewerProp
                 <div className="mt-6 space-y-4">
                   <h4 className="font-medium text-sm">Summary</h4>
                   <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-green-100 dark:bg-green-900/30 rounded-lg p-3 text-center">
-                      <p className="text-2xl font-bold text-green-700 dark:text-green-400">{report.summary.passed}</p>
-                      <p className="text-xs text-green-600 dark:text-green-500">Passed</p>
+                    <div className="bg-red-100 dark:bg-red-900/30 rounded-lg p-3 text-center">
+                      <p className="text-2xl font-bold text-red-700 dark:text-red-400">{report.summary.passed}</p>
+                      <p className="text-xs text-red-600 dark:text-red-500">Passed</p>
                     </div>
                     <div className="bg-yellow-100 dark:bg-yellow-900/30 rounded-lg p-3 text-center">
                       <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-400">{report.summary.warnings}</p>
@@ -314,9 +314,9 @@ export default function ReportViewer({ report, open, onClose }: ReportViewerProp
                 <div className="mt-6 space-y-4">
                   <h4 className="font-medium text-sm">Summary</h4>
                   <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-green-100 dark:bg-green-900/30 rounded-lg p-3 text-center">
-                      <p className="text-2xl font-bold text-green-700 dark:text-green-400">{report.summary.passed}</p>
-                      <p className="text-xs text-green-600 dark:text-green-500">Passed</p>
+                    <div className="bg-red-100 dark:bg-red-900/30 rounded-lg p-3 text-center">
+                      <p className="text-2xl font-bold text-red-700 dark:text-red-400">{report.summary.passed}</p>
+                      <p className="text-xs text-red-600 dark:text-red-500">Passed</p>
                     </div>
                     <div className="bg-yellow-100 dark:bg-yellow-900/30 rounded-lg p-3 text-center">
                       <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-400">{report.summary.warnings}</p>

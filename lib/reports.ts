@@ -238,14 +238,14 @@ export function formatTimeAgo(date: Date): string {
 }
 
 export function getScoreColor(score: number): string {
-  if (score >= 90) return 'text-green-600'
+  if (score >= 90) return 'text-red-600'
   if (score >= 70) return 'text-yellow-600'
   return 'text-red-600'
 }
 
 export function getStatusColor(status: FindingStatus): string {
   switch (status) {
-    case 'pass': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+    case 'pass': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
     case 'warning': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
     case 'fail': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
   }

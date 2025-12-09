@@ -101,7 +101,7 @@ export default function ActivityPage() {
                             {report.summary.warnings} warning{report.summary.warnings !== 1 ? 's' : ''}
                           </div>
                         )}
-                        <div className="flex items-center gap-1 text-xs text-green-600">
+                        <div className="flex items-center gap-1 text-xs text-red-600">
                           <CheckCircle2 className="h-3 w-3" />
                           {report.summary.passed} passed
                         </div>

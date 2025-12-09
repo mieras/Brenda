@@ -87,8 +87,8 @@ export default function Home() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-3">
-                <div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <div className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="h-4 w-4 text-red-600 dark:text-red-400" />
                 </div>
                 <div>
                   <p className="font-medium">Design Reviews</p>

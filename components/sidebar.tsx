@@ -14,7 +14,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import {
+import { 
   Home,
   Circle,
   Palette,
@@ -264,13 +264,18 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
         className={cn(
           "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
           isActive
-            ? "bg-[#0050A5]/10 text-[#0050A5]"
-            : "text-muted-foreground hover:bg-muted hover:text-foreground",
+            ? "bg-[#0050A5]/10 text-[#0050A5] dark:bg-[#0050A5]/20 dark:text-[hsl(212,100%,60%)]"
+            : "text-muted-foreground hover:bg-muted hover:text-foreground dark:text-[hsl(212,100%,60%)] dark:hover:bg-[#0050A5]/10 dark:hover:text-[hsl(212,100%,70%)]",
           isCollapsed && "justify-center px-2"
         )}
         title={isCollapsed ? item.label : undefined}
       >
-        <Icon className={cn("h-4 w-4 shrink-0", isActive && "text-[#0050A5]")} />
+        <Icon className={cn(
+          "h-4 w-4 shrink-0",
+          isActive 
+            ? "text-[#0050A5] dark:text-[hsl(212,100%,60%)]" 
+            : "dark:text-[hsl(212,100%,60%)]"
+        )} />
         {!isCollapsed && <span>{item.label}</span>}
       </Link>
     )
@@ -279,17 +284,17 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "flex flex-col h-screen border-r-gray-500/10  bg-card transition-all duration-300 sticky top-0",
+        "flex flex-col h-screen  bg-card transition-all duration-300 sticky top-0",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-[#E30027]">
+      <div className="flex items-center justify-between p-4  bg-[#E30027]">
         <div className="flex items-center gap-2 flex-1">
           <div className="h-8 w-8 rounded-lg bg-[#BB0020] flex items-center justify-center">
             <Sparkles className="h-4 w-4 text-white" />
           </div>
-          {!isCollapsed && (
+        {!isCollapsed && (
             <span className="font-semibold text-lg text-white">Brenda</span>
           )}
         </div>
@@ -346,14 +351,14 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
 
                 return (
                   <AccordionItem key={section.id} value={section.id} className="border-none">
-                    <AccordionTrigger className="px-3 py-2 text-sm font-medium hover:no-underline">
+                    <AccordionTrigger className="px-3 py-2 text-sm font-medium hover:no-underline dark:text-[hsl(212,100%,60%)]">
                       <div className="flex items-center gap-2">
-                        <SectionIcon className="h-4 w-4" />
+                        <SectionIcon className="h-4 w-4 dark:text-[hsl(212,100%,60%)]" />
                         <span>{section.label}</span>
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="pb-1">
-                      <div className="space-y-1 pl-7">
+                      <div className="space-y-1">
                         {/* Direct items */}
                         {section.items.map((item) => {
                           const normalizedPathname = pathname.replace(/\/$/, '') || '/'
@@ -378,11 +383,11 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
                                   value={subsection.label}
                                   className="border-none"
                                 >
-                                  <AccordionTrigger className="px-3 py-1.5 text-xs font-medium hover:no-underline">
+                                  <AccordionTrigger className="px-3 py-1.5 text-xs font-medium hover:no-underline dark:text-[hsl(212,100%,60%)]">
                                     {subsection.label}
                                   </AccordionTrigger>
                                   <AccordionContent className="pb-1">
-                                    <div className="space-y-1 pl-4">
+                                    <div className="space-y-1">
                                       {subsection.items.map((item) => {
                                         const normalizedPathname = pathname.replace(/\/$/, '') || '/'
                                         const normalizedHref = item.href.replace(/\/$/, '') || '/'
@@ -403,25 +408,146 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
               })}
             </Accordion>
           ) : (
-            // Collapsed view - just show icons
-            sections
-              .filter(section => sectionVisibility[section.id])
-              .map((section) => {
-                const SectionIcon = section.icon
-                return (
-                  <div key={section.id} className="flex justify-center py-2" title={section.label}>
-                    <SectionIcon className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                )
-              })
+            // Collapsed view - show clickable icons with accordions
+            <Accordion
+              type="single"
+              value={openSection}
+              onValueChange={(value) => setOpenSection(value)}
+              collapsible
+              className="w-full"
+            >
+              {sections
+                .filter(section => sectionVisibility[section.id])
+                .map((section) => {
+                  const SectionIcon = section.icon
+                  const hasActiveItem = section.items.some(item => {
+                    const normalizedPathname = pathname.replace(/\/$/, '') || '/'
+                    const normalizedHref = item.href.replace(/\/$/, '') || '/'
+                    return normalizedPathname === normalizedHref
+                  }) || section.subsections?.some(subsection => 
+                    subsection.items.some(item => {
+                      const normalizedPathname = pathname.replace(/\/$/, '') || '/'
+                      const normalizedHref = item.href.replace(/\/$/, '') || '/'
+                      return normalizedPathname === normalizedHref
+                    })
+                  )
+                  
+                  return (
+                    <AccordionItem key={section.id} value={section.id} className="border-none">
+                      <AccordionTrigger 
+                        className="px-2 py-2 hover:no-underline justify-center"
+                        title={section.label}
+                      >
+                        <SectionIcon className={cn(
+                          "h-4 w-4",
+                          hasActiveItem 
+                            ? "text-[#0050A5] dark:text-[hsl(212,100%,60%)]" 
+                            : "text-muted-foreground dark:text-[hsl(212,100%,60%)]"
+                        )} />
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-1">
+                        <div className="space-y-1">
+                          {/* Direct items */}
+                          {section.items.map((item) => {
+                            const normalizedPathname = pathname.replace(/\/$/, '') || '/'
+                            const normalizedHref = item.href.replace(/\/$/, '') || '/'
+                            const isActive = normalizedPathname === normalizedHref
+                            const Icon = item.icon
+                            return (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                onClick={onNavigate}
+                                className={cn(
+                                  "flex items-center justify-center px-2 py-2 rounded-md text-sm font-medium transition-colors",
+                                  isActive
+                                    ? "bg-[#0050A5]/10 text-[#0050A5] dark:bg-[#0050A5]/20 dark:text-[hsl(212,100%,60%)]"
+                                    : "text-muted-foreground hover:bg-muted hover:text-foreground dark:text-[hsl(212,100%,60%)] dark:hover:bg-[#0050A5]/10 dark:hover:text-[hsl(212,100%,70%)]"
+                                )}
+                                title={item.label}
+                              >
+                                <Icon className={cn(
+          "h-4 w-4 shrink-0",
+          isActive 
+            ? "text-[#0050A5] dark:text-[hsl(212,100%,60%)]" 
+            : "dark:text-[hsl(212,100%,60%)]"
+        )} />
+                              </Link>
+                            )
+                          })}
+                          
+                          {/* Subsections */}
+                          {section.subsections && section.subsections.length > 0 && (
+                            <Accordion 
+                              type="single"
+                              collapsible
+                              className="w-full mt-2"
+                              value={openSubsections[section.id]}
+                              onValueChange={(value) => setOpenSubsections(prev => ({ ...prev, [section.id]: value }))}
+                            >
+                              {section.subsections.map((subsection) => {
+                                return (
+                                  <AccordionItem 
+                                    key={subsection.label} 
+                                    value={subsection.label}
+                                    className="border-none"
+                                  >
+                                    <AccordionTrigger 
+                                      className="px-2 py-1.5 text-xs font-medium hover:no-underline justify-center"
+                                      title={subsection.label}
+                                    >
+                                      <span className="text-[10px]">{subsection.label}</span>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="pb-1">
+                                      <div className="space-y-1">
+                                        {subsection.items.map((item) => {
+                                          const normalizedPathname = pathname.replace(/\/$/, '') || '/'
+                                          const normalizedHref = item.href.replace(/\/$/, '') || '/'
+                                          const isActive = normalizedPathname === normalizedHref
+                                          const Icon = item.icon
+            return (
+                <Link
+                                              key={item.href}
+                                              href={item.href}
+                                              onClick={onNavigate}
+                                              className={cn(
+                                                "flex items-center justify-center px-2 py-2 rounded-md text-sm font-medium transition-colors",
+                                                isActive
+                                                  ? "bg-[#0050A5]/10 text-[#0050A5]"
+                                                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                              )}
+                                              title={item.label}
+                                            >
+                                              <Icon className={cn(
+          "h-4 w-4 shrink-0",
+          isActive 
+            ? "text-[#0050A5] dark:text-[hsl(212,100%,60%)]" 
+            : "dark:text-[hsl(212,100%,60%)]"
+        )} />
+                </Link>
+                                          )
+                                        })}
+                                      </div>
+                                    </AccordionContent>
+                                  </AccordionItem>
+                                )
+                              })}
+                            </Accordion>
+                          )}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  )
+                })}
+            </Accordion>
           )}
-        </nav>
+      </nav>
       </ScrollArea>
 
       {/* Footer */}
       <Separator />
       <div className={cn(
-        "p-4 flex items-center",
+        "p-4 flex items-center border-r border-gray-900/10 dark:border-gray-100/10",
         isCollapsed ? "justify-center" : "justify-between"
       )}>
         <ThemeToggle />

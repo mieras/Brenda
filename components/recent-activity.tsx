@@ -67,7 +67,7 @@ export function RecentActivity() {
             >
               <div className={cn(
                 "h-2 w-2 rounded-full shrink-0",
-                activity.status === 'success' ? 'bg-green-500' : 'bg-yellow-500'
+                activity.status === 'success' ? 'bg-red-500' : 'bg-yellow-500'
               )} />
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate group-hover:text-primary transition-colors">

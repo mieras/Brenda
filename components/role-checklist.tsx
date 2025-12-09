@@ -198,7 +198,7 @@ export function RoleChecklist() {
                 className={cn(
                   "flex items-start gap-3 p-3 rounded-lg border transition-colors",
                   isCompleted 
-                    ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900" 
+                    ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900" 
                     : "bg-card hover:bg-muted/50"
                 )}
               >
@@ -208,7 +208,7 @@ export function RoleChecklist() {
                   aria-label={isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
                 >
                   {isCompleted ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <CheckCircle2 className="h-5 w-5 text-red-600 dark:text-red-400" />
                   ) : (
                     <Circle className="h-5 w-5 text-muted-foreground" />
                   )}
