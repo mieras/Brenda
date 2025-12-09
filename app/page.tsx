@@ -40,7 +40,7 @@ export default function Home() {
                 <Sparkles className="h-3 w-3 mr-1" />
                 AI-Powered Brand Assistant
               </Badge>
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-balance mb-4">
                 Meet <span className="text-primary">Brenda</span>, your brand buddy
               </h1>
               <p className="text-lg text-muted-foreground mb-6 max-w-lg">

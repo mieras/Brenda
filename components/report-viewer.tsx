@@ -95,37 +95,41 @@ export default function ReportViewer({ report, open, onClose }: ReportViewerProp
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="max-w-7xl w-[95vw] h-[90vh] p-0 gap-0 flex flex-col">
-        {/* Header */}
-        <DialogHeader className="px-6 py-4 border-b shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                {report.fileType === 'figma' ? (
-                  <Figma className="h-5 w-5" />
-                ) : (
-                  <ImageIcon className="h-5 w-5" />
-                )}
+        {/* Main layout: 2 columns for left side, 1 for chat */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-[2fr_1fr] overflow-hidden">
+          {/* Left side: Preview + Findings */}
+          <div className="flex flex-col overflow-hidden">
+            {/* Header over 2 columns */}
+            <DialogHeader className="px-6 py-4 border-b shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                    {report.fileType === 'figma' ? (
+                      <Figma className="h-5 w-5" />
+                    ) : (
+                      <ImageIcon className="h-5 w-5" />
+                    )}
+                  </div>
+                  <div>
+                    <DialogTitle className="text-left">{report.fileName}</DialogTitle>
+                    <p className="text-sm text-muted-foreground">{formatTimeAgo(report.createdAt)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Brand Score</p>
+                    <p className={cn("text-2xl font-bold", getScoreColor(report.summary.score))}>
+                      {report.summary.score}/100
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <DialogTitle className="text-left">{report.fileName}</DialogTitle>
-                <p className="text-sm text-muted-foreground">{formatTimeAgo(report.createdAt)}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">Brand Score</p>
-                <p className={cn("text-2xl font-bold", getScoreColor(report.summary.score))}>
-                  {report.summary.score}/100
-                </p>
-              </div>
-            </div>
-          </div>
-        </DialogHeader>
+            </DialogHeader>
 
-        {/* Three column layout */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 overflow-hidden">
-          {/* Column 1: Preview */}
-          <div className="border-r bg-muted/30 p-6 overflow-auto hidden lg:block">
+            {/* Two column layout for Preview and Findings */}
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 overflow-hidden">
+              {/* Column 1: Preview */}
+              <div className="border-r bg-muted/30 p-6 overflow-auto hidden lg:block">
             <h3 className="font-semibold mb-4">Design Preview</h3>
             {report.fileType === 'figma' ? (
               <div className="aspect-video bg-muted rounded-lg flex flex-col items-center justify-center gap-3">
@@ -165,10 +169,10 @@ export default function ReportViewer({ report, open, onClose }: ReportViewerProp
               </div>
               <Progress value={report.summary.score} className="h-2" />
             </div>
-          </div>
+              </div>
 
-          {/* Column 2: Findings */}
-          <div className="border-r overflow-hidden flex flex-col">
+              {/* Column 2: Findings */}
+              <div className="border-r overflow-hidden flex flex-col">
             <div className="px-6 py-4 border-b bg-card shrink-0">
               <h3 className="font-semibold">Findings ({report.findings.length})</h3>
             </div>
@@ -211,10 +215,13 @@ export default function ReportViewer({ report, open, onClose }: ReportViewerProp
                 ))}
               </div>
             </ScrollArea>
+              </div>
+            </div>
           </div>
 
-          {/* Column 3: Chat */}
-          <div className="flex flex-col overflow-hidden">
+          {/* Column 3: Chat - Full height */}
+          <div className="flex flex-col overflow-hidden border-l">
+            {/* Chat header - starts from top */}
             <div className="px-6 py-4 border-b bg-card shrink-0">
               <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">

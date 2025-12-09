@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback, DragEvent } from 'react'
+import { useState, useRef, useEffect, useCallback, DragEvent, ReactNode } from 'react'
+import Link from 'next/link'
 import {
   Sheet,
   SheetContent,
@@ -38,6 +39,64 @@ import { useReports } from '@/lib/report-context'
 import { getResponse, getWelcomeMessage } from '@/lib/mockResponses'
 import { Report, Finding } from '@/lib/reports'
 
+// Parse markdown-style links and bold text in message content
+function parseMessageContent(content: string, onLinkClick?: () => void): ReactNode[] {
+  const parts: ReactNode[] = []
+  // Match [text](url) pattern and **bold** pattern
+  const regex = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*/g
+  let lastIndex = 0
+  let match
+  let key = 0
+
+  while ((match = regex.exec(content)) !== null) {
+    // Add text before the match
+    if (match.index > lastIndex) {
+      parts.push(content.slice(lastIndex, match.index))
+    }
+
+    if (match[1] && match[2]) {
+      // It's a link [text](url)
+      const isInternal = match[2].startsWith('/')
+      if (isInternal) {
+        parts.push(
+          <Link 
+            key={key++} 
+            href={match[2]} 
+            onClick={onLinkClick}
+            className="text-primary hover:underline font-medium"
+          >
+            {match[1]}
+          </Link>
+        )
+      } else {
+        parts.push(
+          <a 
+            key={key++} 
+            href={match[2]} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-primary hover:underline font-medium"
+          >
+            {match[1]}
+          </a>
+        )
+      }
+    } else if (match[3]) {
+      // It's bold **text**
+      parts.push(<strong key={key++}>{match[3]}</strong>)
+    }
+
+    lastIndex = match.index + match[0].length
+  }
+
+  // Add remaining text
+  if (lastIndex < content.length) {
+    parts.push(content.slice(lastIndex))
+  }
+
+  return parts.length > 0 ? parts : [content]
+}
+
 // Figma URL pattern
 const FIGMA_URL_REGEX = /https?:\/\/(www\.)?figma\.com\/(file|design|proto)\/([a-zA-Z0-9]+)/
 
@@ -62,6 +121,8 @@ interface Message {
   content: string
   attachment?: Attachment
   analysis?: AnalysisResult
+  links?: GuidelineLink[]
+  cta?: string
 }
 
 const roles = [
@@ -72,13 +133,94 @@ const roles = [
   { id: 'agency', label: 'Agency' },
 ]
 
-const starters = [
-  { text: 'Check my spacing', icon: Layout, roles: ['designer', 'developer'] },
-  { text: 'Validate colors', icon: Palette, roles: ['designer', 'developer'] },
-  { text: 'Review accessibility', icon: Accessibility, roles: ['designer', 'developer', 'brand'] },
-  { text: 'Improve copy tone', icon: Type, roles: ['content', 'brand'] },
-  { text: 'Analyze design', icon: Wand2, roles: ['designer', 'content', 'agency'] },
-  { text: 'Explain guideline', icon: MessageSquare, roles: ['designer', 'developer', 'content', 'brand', 'agency'] },
+interface GuidelineLink {
+  title: string
+  description: string
+  href: string
+  icon: typeof Layout
+}
+
+interface Starter {
+  text: string
+  icon: typeof Layout
+  roles: string[]
+  response: string
+  links?: GuidelineLink[]
+  cta?: string
+}
+
+const starters: Starter[] = [
+  { 
+    text: 'Check my spacing', 
+    icon: Layout, 
+    roles: ['designer', 'developer'],
+    response: "I'd love to help check your spacing! Our spacing system is based on an 8px grid with tokens like --space-xs (4px), --space-s (8px), --space-m (16px), and --space-l (24px).",
+    links: [
+      { title: 'Typography & Spacing', description: 'Type scale & vertical rhythm', href: '/guidelines/typography', icon: Type },
+      { title: 'Graphic Elements', description: 'Patterns & layout grids', href: '/guidelines/supporting-graphic-elements', icon: Layout },
+    ],
+    cta: "Do you have a design you'd like me to review? Upload an image or paste a Figma link!"
+  },
+  { 
+    text: 'Validate colors', 
+    icon: Palette, 
+    roles: ['designer', 'developer'],
+    response: "Great, let's make sure your colors are on-brand! Our primary palette includes Blue (#0050A5), Red (#BB0020), Green (#008900), and Yellow (#FFB800).",
+    links: [
+      { title: 'Colour Palette', description: 'Primary & secondary colors', href: '/guidelines/colour-palette', icon: Palette },
+      { title: 'Accessibility', description: 'Contrast requirements', href: '/guidelines/typography', icon: Accessibility },
+    ],
+    cta: "Want me to analyze your design? Upload an image or paste your Figma link!"
+  },
+  { 
+    text: 'Review accessibility', 
+    icon: Accessibility, 
+    roles: ['designer', 'developer', 'brand'],
+    response: "Accessibility is crucial for inclusive design! I can check color contrast (WCAG AA/AAA), touch targets (44x44px minimum), text readability, and focus states.",
+    links: [
+      { title: 'Typography', description: 'Accessible type scale', href: '/guidelines/typography', icon: Type },
+      { title: 'Colour Palette', description: 'Contrast guidelines', href: '/guidelines/colour-palette', icon: Palette },
+      { title: 'Icons', description: 'Touch target sizes', href: '/guidelines/icons', icon: Accessibility },
+    ],
+    cta: "Share your design with me and I'll run a full accessibility review!"
+  },
+  { 
+    text: 'Improve copy tone', 
+    icon: Type, 
+    roles: ['content', 'brand'],
+    response: "I can help you nail our brand voice! Our tone is warm & friendly, clear & simple, optimistic & encouraging, and always human - never robotic.",
+    links: [
+      { title: 'Typography', description: 'Voice & tone guidelines', href: '/guidelines/typography', icon: Type },
+      { title: 'The Power of Brenda', description: 'Brand personality', href: '/guidelines/the-power-of-brenda', icon: MessageSquare },
+    ],
+    cta: "Share your copy or design and I'll give you suggestions to make it more on-brand!"
+  },
+  { 
+    text: 'Analyze design', 
+    icon: Wand2, 
+    roles: ['designer', 'content', 'agency'],
+    response: "I'll give your design a full brand compliance check! I review logo usage, colors, spacing, typography, and accessibility.",
+    links: [
+      { title: 'Our Logos', description: 'Logo placement & clear space', href: '/guidelines/our-logos', icon: Layout },
+      { title: 'Colour Palette', description: 'Brand color compliance', href: '/guidelines/colour-palette', icon: Palette },
+      { title: 'Typography', description: 'Type scale & hierarchy', href: '/guidelines/typography', icon: Type },
+    ],
+    cta: "Ready when you are! Upload your design or paste a Figma link to get started."
+  },
+  { 
+    text: 'Explain guideline', 
+    icon: MessageSquare, 
+    roles: ['designer', 'developer', 'content', 'brand', 'agency'],
+    response: "I'm happy to explain any of our brand guidelines! Here are the most popular topics:",
+    links: [
+      { title: 'Our Logos', description: 'Usage rules & clear space', href: '/guidelines/our-logos', icon: Layout },
+      { title: 'Colour Palette', description: 'Primary & secondary colors', href: '/guidelines/colour-palette', icon: Palette },
+      { title: 'Typography', description: 'Fonts & type scale', href: '/guidelines/typography', icon: Type },
+      { title: 'Icons', description: 'Icon library & usage', href: '/guidelines/icons', icon: Wand2 },
+      { title: 'Graphic Elements', description: 'Patterns & shapes', href: '/guidelines/supporting-graphic-elements', icon: Layout },
+    ],
+    cta: "Just ask your question, or share a design scenario with me!"
+  },
 ]
 
 // Truncate Figma URL for display
@@ -292,9 +434,21 @@ export default function BrendaSheet() {
     }, 1500 + Math.random() * 1000)
   }
 
-  const handleStarterClick = (text: string) => {
-    setInput(text)
-    inputRef.current?.focus()
+  const handleStarterClick = (starter: Starter) => {
+    // Add user message
+    setMessages(prev => [...prev, { role: 'user', content: starter.text }])
+    setIsTyping(true)
+    
+    // Simulate typing delay then add Brenda's response with links
+    setTimeout(() => {
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: starter.response,
+        links: starter.links,
+        cta: starter.cta
+      }])
+      setIsTyping(false)
+    }, 800 + Math.random() * 400)
   }
 
   const handleFileSelect = useCallback((file: File) => {
@@ -486,6 +640,39 @@ export default function BrendaSheet() {
                       {message.content}
                     </div>
                   )}
+                  {/* Link Cards */}
+                  {message.links && message.links.length > 0 && (
+                    <div className="w-full overflow-x-auto pb-1 -mx-1 px-1">
+                      <div className="flex gap-2" style={{ minWidth: 'max-content' }}>
+                        {message.links.map((link, linkIdx) => {
+                          const LinkIcon = link.icon
+                          return (
+                            <Link
+                              key={linkIdx}
+                              href={link.href}
+                              onClick={closeChat}
+                              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-border bg-card hover:border-primary/50 hover:bg-primary/5 transition-all group min-w-[160px]"
+                            >
+                              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                                <LinkIcon className="h-4 w-4 text-primary" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{link.title}</p>
+                                <p className="text-xs text-muted-foreground truncate">{link.description}</p>
+                              </div>
+                              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0 ml-auto" />
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  {/* CTA */}
+                  {message.cta && (
+                    <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl px-4 py-3 border border-primary/20">
+                      <p className="text-sm text-muted-foreground">{message.cta}</p>
+                    </div>
+                  )}
                   {/* Analysis Results */}
                   {message.analysis && (
                     <div className="bg-card border rounded-xl p-3 space-y-3">
@@ -554,16 +741,14 @@ export default function BrendaSheet() {
             {filteredStarters.slice(0, 4).map((starter) => {
               const Icon = starter.icon
               return (
-                <Button
+                <button
                   key={starter.text}
-                  variant="outline"
-                  size="sm"
-                  className="text-xs h-8 rounded-full"
-                  onClick={() => handleStarterClick(starter.text)}
+                  onClick={() => handleStarterClick(starter)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-full border border-[#0050A5] text-[#0050A5] bg-white dark:bg-background hover:bg-[#0050A5]/5 transition-colors"
                 >
-                  <Icon className="h-3 w-3 mr-1.5" />
+                  <Icon className="h-3.5 w-3.5" />
                   {starter.text}
-                </Button>
+                </button>
               )
             })}
           </div>

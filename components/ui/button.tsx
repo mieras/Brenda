@@ -10,13 +10,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-[0_-2px_0_0_hsl(120,100%,18%)_inset] hover:bg-primary/90 active:shadow-none active:translate-y-[1px]",
+          "bg-primary text-primary-foreground shadow-[0_-3px_0_0_hsla(0,0,0,0.3)_inset] hover:bg-primary/90 active:shadow-none active:translate-y-[1px]",
         destructive:
           "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         outline:
           "border-2 border-[hsl(212,100%,32%)] bg-background text-[hsl(212,100%,32%)] shadow-[0_-3px_0_0_hsl(212,100%,32%)_inset] hover:bg-[hsl(212,100%,32%)]/5 active:shadow-none active:translate-y-[1px]",
         secondary:
-          "border-2 border-[hsl(212,100%,32%)] bg-white text-[hsl(212,100%,32%)] shadow-[0_-3px_0_0_hsl(212,100%,32%)_inset] hover:bg-[hsl(212,100%,32%)]/5 active:shadow-none active:translate-y-[1px] dark:bg-transparent dark:border-[hsl(212,100%,60%)] dark:text-[hsl(212,100%,60%)] dark:shadow-[0_-3px_0_0_hsl(212,100%,60%)_inset]",
+          "border-2 border-[hsl(212,100%,32%)] bg-white text-[hsl(212,100%,32%)] shadow-[0_-1px_0_0_hsl(212,100%,32%)_inset] hover:bg-[hsl(212,100%,32%)]/5 active:shadow-none active:translate-y-[1px] dark:bg-transparent dark:border-[hsl(212,100%,60%)] dark:text-[hsl(212,100%,60%)] dark:shadow-[0_-1px_0_0_hsl(212,100%,60%)_inset]",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },
