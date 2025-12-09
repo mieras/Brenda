@@ -72,4 +72,55 @@ export const roleLabels: Record<string, string> = {
   agency: 'Agency Partner'
 }
 
+// Section visibility per role
+export type SectionId = 'brand-story' | 'brand-portal' | 'brand-design' | 'content-guidelines'
+
+export interface SectionVisibility {
+  id: SectionId
+  label: string
+  defaultOpen: boolean
+}
+
+export const roleSectionVisibility: Record<string, Record<SectionId, boolean>> = {
+  designer: {
+    'brand-story': true,
+    'brand-portal': true,
+    'brand-design': true,
+    'content-guidelines': false,
+  },
+  developer: {
+    'brand-story': false,
+    'brand-portal': false,
+    'brand-design': true,
+    'content-guidelines': false,
+  },
+  content: {
+    'brand-story': true,
+    'brand-portal': true,
+    'brand-design': false,
+    'content-guidelines': true,
+  },
+  brand: {
+    'brand-story': true,
+    'brand-portal': true,
+    'brand-design': true,
+    'content-guidelines': true,
+  },
+  agency: {
+    'brand-story': true,
+    'brand-portal': true,
+    'brand-design': true,
+    'content-guidelines': false,
+  },
+}
+
+export function getSectionVisibility(role: string): Record<SectionId, boolean> {
+  return roleSectionVisibility[role] || roleSectionVisibility.designer
+}
+
+export function isSectionVisible(role: string, sectionId: SectionId): boolean {
+  const visibility = getSectionVisibility(role)
+  return visibility[sectionId] ?? false
+}
+
 

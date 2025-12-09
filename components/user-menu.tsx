@@ -11,13 +11,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { useUser, roleLabels } from '@/lib/user-context'
 import {
-  User,
   Clock,
   Star,
   Settings,
@@ -28,13 +25,6 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
-const roleOptions = [
-  { id: 'designer', label: 'Designer' },
-  { id: 'developer', label: 'Developer' },
-  { id: 'content', label: 'Content Designer' },
-  { id: 'brand', label: 'Brand Guardian' },
-  { id: 'agency', label: 'Agency Partner' },
-]
 
 const favoriteIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   '/guidelines/colour-palette': Palette,
@@ -42,7 +32,7 @@ const favoriteIcons: Record<string, React.ComponentType<{ className?: string }>>
 }
 
 export function UserMenu() {
-  const { user, setRole } = useUser()
+  const { user } = useUser()
   const router = useRouter()
 
   const getInitials = (name: string) => {
@@ -85,22 +75,21 @@ export function UserMenu() {
             <Clock className="mr-2 h-4 w-4" />
             My Activity
           </DropdownMenuItem>
-          <DropdownMenuItem disabled>
-            <User className="mr-2 h-4 w-4" />
-            Profile Settings
+          <DropdownMenuItem onClick={() => router.push('/account')}>
+            <Settings className="mr-2 h-4 w-4" />
+            Account Settings
           </DropdownMenuItem>
         </DropdownMenuGroup>
         
         <DropdownMenuSeparator />
-        
-        <DropdownMenuLabel className="text-xs text-muted-foreground">My Role</DropdownMenuLabel>
-        <DropdownMenuRadioGroup value={user.role} onValueChange={setRole}>
-          {roleOptions.map((role) => (
-            <DropdownMenuRadioItem key={role.id} value={role.id} className="text-sm">
-              {role.label}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
+        <DropdownMenuLabel className="text-xs text-muted-foreground">
+          Current Role
+        </DropdownMenuLabel>
+        <DropdownMenuItem disabled className="text-sm">
+          <Badge variant="secondary" className="w-full justify-start">
+            {roleLabels[user.role] || user.role}
+          </Badge>
+        </DropdownMenuItem>
 
         {user.favoritePages.length > 0 && (
           <>

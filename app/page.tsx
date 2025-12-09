@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -8,24 +10,14 @@ import { getAssetPath } from '@/lib/utils'
 import { HeroButtons } from '@/components/hero-buttons'
 import { FooterCTA } from '@/components/footer-cta'
 import { RecentActivity } from '@/components/recent-activity'
+import { RoleChecklist } from '@/components/role-checklist'
+import { RoleSuggestions } from '@/components/role-suggestions'
 import {
   Sparkles,
-  ArrowRight,
-  Palette,
-  Type,
-  Shapes,
-  Grid3X3,
   MessageCircle,
   CheckCircle2,
   TrendingUp
 } from 'lucide-react'
-
-const quickLinks = [
-  { title: 'Colour Palette', description: 'Brand colors & usage', icon: Palette, href: '/guidelines/colour-palette' },
-  { title: 'Typography', description: 'Fonts & type scale', icon: Type, href: '/guidelines/typography' },
-  { title: 'Graphic Elements', description: 'Patterns & shapes', icon: Shapes, href: '/guidelines/supporting-graphic-elements' },
-  { title: 'Icons', description: 'Icon library', icon: Grid3X3, href: '/guidelines/icons' },
-]
 
 export default function Home() {
   return (
@@ -68,36 +60,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Quick Links */}
+      {/* Getting Started & Recommendations */}
       <section className="max-w-5xl mx-auto px-6 py-12">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-semibold">Quick Access</h2>
-            <p className="text-muted-foreground">Jump to frequently used guidelines</p>
-          </div>
-          <Button variant="ghost" asChild>
-            <Link href="/guidelines/our-logos" className="gap-2">
-              View all <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {quickLinks.map((link) => {
-            const Icon = link.icon
-            return (
-              <Link key={link.href} href={link.href}>
-                <Card className="h-full hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group">
-                  <CardContent className="p-4">
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
-                      <Icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <h3 className="font-medium mb-1">{link.title}</h3>
-                    <p className="text-sm text-muted-foreground">{link.description}</p>
-                  </CardContent>
-                </Card>
-              </Link>
-            )
-          })}
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Role-based Checklist */}
+          <RoleChecklist />
+
+          {/* Role-based Suggestions */}
+          <RoleSuggestions />
         </div>
       </section>
 
