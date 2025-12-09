@@ -20,6 +20,8 @@ export interface Report {
   fileUrl: string
   thumbnailUrl?: string
   figmaUrl?: string
+  figmaImageUrl?: string // Full size image from Figma MCP
+  figmaThumbnailUrl?: string // Thumbnail from Figma MCP
   summary: {
     passed: number
     warnings: number

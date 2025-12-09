@@ -26,6 +26,7 @@ import {
   ImageIcon,
   ArrowRight
 } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn, getAssetPath } from '@/lib/utils'
 import { Report, Finding, getStatusColor, getScoreColor, formatTimeAgo } from '@/lib/reports'
 import Link from 'next/link'
@@ -94,7 +95,7 @@ export default function ReportViewer({ report, open, onClose }: ReportViewerProp
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="max-w-7xl w-[95vw] h-[90vh] p-0 gap-0 flex flex-col">
+      <DialogContent className="max-w-full w-full h-full max-h-screen p-0 gap-0 flex flex-col m-0 rounded-none left-0 top-0 translate-x-0 translate-y-0">
         {/* Main layout: 2 columns for left side, 1 for chat */}
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-[2fr_1fr] overflow-hidden">
           {/* Left side: Preview + Findings */}
@@ -126,95 +127,254 @@ export default function ReportViewer({ report, open, onClose }: ReportViewerProp
               </div>
             </DialogHeader>
 
-            {/* Two column layout for Preview and Findings */}
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 overflow-hidden">
-              {/* Column 1: Preview */}
-              <div className="border-r bg-muted/30 p-6 overflow-auto hidden lg:block">
-            <h3 className="font-semibold mb-4">Design Preview</h3>
-            {report.fileType === 'figma' ? (
-              <div className="aspect-video bg-muted rounded-lg flex flex-col items-center justify-center gap-3">
-                <Figma className="h-12 w-12 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">Figma Design</p>
-                <a
-                  href={report.figmaUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-sm text-primary hover:underline"
-                >
-                  Open in Figma <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
-            ) : (
-              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                <ImageIcon className="h-12 w-12 text-muted-foreground" />
-              </div>
-            )}
+            {/* Tabs for mobile, grid for desktop */}
+            <Tabs defaultValue="findings" className="flex-1 flex flex-col overflow-hidden lg:hidden">
+              <TabsList className="mx-6 mt-4 mb-0 shrink-0">
+                <TabsTrigger value="design" className="flex-1">Design</TabsTrigger>
+                <TabsTrigger value="findings" className="flex-1">Findings</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="design" className="flex-1 overflow-auto p-6 mt-4">
+                <h3 className="font-semibold mb-4">Design Preview</h3>
+                {report.fileType === 'figma' ? (
+                  <div className="space-y-3">
+                    {report.figmaImageUrl ? (
+                      <div className="relative group">
+                        <img 
+                          src={report.figmaImageUrl}
+                          alt={report.fileName}
+                          className="w-full h-auto rounded-lg border border-border shadow-sm"
+                        />
+                        <a
+                          href={report.figmaUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-black/70 hover:bg-black/90 text-white text-xs rounded transition-colors opacity-0 group-hover:opacity-100"
+                        >
+                          Open in Figma <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="aspect-video bg-muted rounded-lg flex flex-col items-center justify-center gap-3">
+                        <Figma className="h-12 w-12 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">Loading design preview...</p>
+                        {report.figmaUrl && (
+                          <a
+                            href={report.figmaUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-sm text-primary hover:underline"
+                          >
+                            Open in Figma <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {report.fileUrl ? (
+                      <img 
+                        src={report.fileUrl}
+                        alt={report.fileName}
+                        className="w-full h-auto rounded-lg border border-border shadow-sm"
+                      />
+                    ) : (
+                      <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                        <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                )}
 
-            {/* Summary stats */}
-            <div className="mt-6 space-y-4">
-              <h4 className="font-medium text-sm">Summary</h4>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="bg-green-100 dark:bg-green-900/30 rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-green-700 dark:text-green-400">{report.summary.passed}</p>
-                  <p className="text-xs text-green-600 dark:text-green-500">Passed</p>
+                {/* Summary stats */}
+                <div className="mt-6 space-y-4">
+                  <h4 className="font-medium text-sm">Summary</h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-green-100 dark:bg-green-900/30 rounded-lg p-3 text-center">
+                      <p className="text-2xl font-bold text-green-700 dark:text-green-400">{report.summary.passed}</p>
+                      <p className="text-xs text-green-600 dark:text-green-500">Passed</p>
+                    </div>
+                    <div className="bg-yellow-100 dark:bg-yellow-900/30 rounded-lg p-3 text-center">
+                      <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-400">{report.summary.warnings}</p>
+                      <p className="text-xs text-yellow-600 dark:text-yellow-500">Warnings</p>
+                    </div>
+                    <div className="bg-red-100 dark:bg-red-900/30 rounded-lg p-3 text-center">
+                      <p className="text-2xl font-bold text-red-700 dark:text-red-400">{report.summary.failed}</p>
+                      <p className="text-xs text-red-600 dark:text-red-500">Failed</p>
+                    </div>
+                  </div>
+                  <Progress value={report.summary.score} className="h-2" />
                 </div>
-                <div className="bg-yellow-100 dark:bg-yellow-900/30 rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-400">{report.summary.warnings}</p>
-                  <p className="text-xs text-yellow-600 dark:text-yellow-500">Warnings</p>
+              </TabsContent>
+
+              <TabsContent value="findings" className="flex-1 overflow-hidden flex flex-col mt-4">
+                <div className="px-6 py-4 border-b bg-card shrink-0">
+                  <h3 className="font-semibold">Findings ({report.findings.length})</h3>
                 </div>
-                <div className="bg-red-100 dark:bg-red-900/30 rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-red-700 dark:text-red-400">{report.summary.failed}</p>
-                  <p className="text-xs text-red-600 dark:text-red-500">Failed</p>
+                <ScrollArea className="flex-1 px-6 py-4">
+                  <div className="space-y-3">
+                    {report.findings.map((finding) => (
+                      <Card key={finding.id} className="overflow-hidden">
+                        <CardHeader className="py-3 px-4">
+                          <div className="flex items-start gap-3">
+                            <StatusIcon status={finding.status} />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge variant="outline" className="text-xs">{finding.category}</Badge>
+                                <Badge className={cn("text-xs", getStatusColor(finding.status))}>
+                                  {finding.status === 'pass' ? 'Pass' : finding.status === 'warning' ? 'Warning' : 'Fail'}
+                                </Badge>
+                              </div>
+                              <CardTitle className="text-sm">{finding.title}</CardTitle>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="py-3 px-4 pt-0">
+                          <p className="text-sm text-muted-foreground mb-2">{finding.description}</p>
+                          {finding.suggestion && (
+                            <p className="text-sm bg-muted p-2 rounded">
+                              <span className="font-medium">Suggestion:</span> {finding.suggestion}
+                            </p>
+                          )}
+                          {finding.guidelineLink && (
+                            <Link
+                              href={finding.guidelineLink}
+                              onClick={onClose}
+                              className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2"
+                            >
+                              View guideline <ArrowRight className="h-3 w-3" />
+                            </Link>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+            </Tabs>
+
+            {/* Desktop: Two column layout for Preview and Findings */}
+            <div className="flex-1 grid grid-cols-2 overflow-hidden hidden lg:grid">
+              {/* Column 1: Preview */}
+              <div className="border-r bg-muted/30 p-6 overflow-auto">
+                <h3 className="font-semibold mb-4">Design Preview</h3>
+                {report.fileType === 'figma' ? (
+                  <div className="space-y-3">
+                    {report.figmaImageUrl ? (
+                      <div className="relative group">
+                        <img 
+                          src={report.figmaImageUrl}
+                          alt={report.fileName}
+                          className="w-full h-auto rounded-lg border border-border shadow-sm"
+                        />
+                        <a
+                          href={report.figmaUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-black/70 hover:bg-black/90 text-white text-xs rounded transition-colors opacity-0 group-hover:opacity-100"
+                        >
+                          Open in Figma <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="aspect-video bg-muted rounded-lg flex flex-col items-center justify-center gap-3">
+                        <Figma className="h-12 w-12 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">Loading design preview...</p>
+                        {report.figmaUrl && (
+                          <a
+                            href={report.figmaUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-sm text-primary hover:underline"
+                          >
+                            Open in Figma <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {report.fileUrl ? (
+                      <img 
+                        src={report.fileUrl}
+                        alt={report.fileName}
+                        className="w-full h-auto rounded-lg border border-border shadow-sm"
+                      />
+                    ) : (
+                      <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                        <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Summary stats */}
+                <div className="mt-6 space-y-4">
+                  <h4 className="font-medium text-sm">Summary</h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-green-100 dark:bg-green-900/30 rounded-lg p-3 text-center">
+                      <p className="text-2xl font-bold text-green-700 dark:text-green-400">{report.summary.passed}</p>
+                      <p className="text-xs text-green-600 dark:text-green-500">Passed</p>
+                    </div>
+                    <div className="bg-yellow-100 dark:bg-yellow-900/30 rounded-lg p-3 text-center">
+                      <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-400">{report.summary.warnings}</p>
+                      <p className="text-xs text-yellow-600 dark:text-yellow-500">Warnings</p>
+                    </div>
+                    <div className="bg-red-100 dark:bg-red-900/30 rounded-lg p-3 text-center">
+                      <p className="text-2xl font-bold text-red-700 dark:text-red-400">{report.summary.failed}</p>
+                      <p className="text-xs text-red-600 dark:text-red-500">Failed</p>
+                    </div>
+                  </div>
+                  <Progress value={report.summary.score} className="h-2" />
                 </div>
-              </div>
-              <Progress value={report.summary.score} className="h-2" />
-            </div>
               </div>
 
               {/* Column 2: Findings */}
               <div className="border-r overflow-hidden flex flex-col">
-            <div className="px-6 py-4 border-b bg-card shrink-0">
-              <h3 className="font-semibold">Findings ({report.findings.length})</h3>
-            </div>
-            <ScrollArea className="flex-1 px-6 py-4">
-              <div className="space-y-3">
-                {report.findings.map((finding) => (
-                  <Card key={finding.id} className="overflow-hidden">
-                    <CardHeader className="py-3 px-4">
-                      <div className="flex items-start gap-3">
-                        <StatusIcon status={finding.status} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="outline" className="text-xs">{finding.category}</Badge>
-                            <Badge className={cn("text-xs", getStatusColor(finding.status))}>
-                              {finding.status === 'pass' ? 'Pass' : finding.status === 'warning' ? 'Warning' : 'Fail'}
-                            </Badge>
+                <div className="px-6 py-4 border-b bg-card shrink-0">
+                  <h3 className="font-semibold">Findings ({report.findings.length})</h3>
+                </div>
+                <ScrollArea className="flex-1 px-6 py-4">
+                  <div className="space-y-3">
+                    {report.findings.map((finding) => (
+                      <Card key={finding.id} className="overflow-hidden">
+                        <CardHeader className="py-3 px-4">
+                          <div className="flex items-start gap-3">
+                            <StatusIcon status={finding.status} />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge variant="outline" className="text-xs">{finding.category}</Badge>
+                                <Badge className={cn("text-xs", getStatusColor(finding.status))}>
+                                  {finding.status === 'pass' ? 'Pass' : finding.status === 'warning' ? 'Warning' : 'Fail'}
+                                </Badge>
+                              </div>
+                              <CardTitle className="text-sm">{finding.title}</CardTitle>
+                            </div>
                           </div>
-                          <CardTitle className="text-sm">{finding.title}</CardTitle>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="py-3 px-4 pt-0">
-                      <p className="text-sm text-muted-foreground mb-2">{finding.description}</p>
-                      {finding.suggestion && (
-                        <p className="text-sm bg-muted p-2 rounded">
-                          <span className="font-medium">Suggestion:</span> {finding.suggestion}
-                        </p>
-                      )}
-                      {finding.guidelineLink && (
-                        <Link
-                          href={finding.guidelineLink}
-                          onClick={onClose}
-                          className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2"
-                        >
-                          View guideline <ArrowRight className="h-3 w-3" />
-                        </Link>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </ScrollArea>
+                        </CardHeader>
+                        <CardContent className="py-3 px-4 pt-0">
+                          <p className="text-sm text-muted-foreground mb-2">{finding.description}</p>
+                          {finding.suggestion && (
+                            <p className="text-sm bg-muted p-2 rounded">
+                              <span className="font-medium">Suggestion:</span> {finding.suggestion}
+                            </p>
+                          )}
+                          {finding.guidelineLink && (
+                            <Link
+                              href={finding.guidelineLink}
+                              onClick={onClose}
+                              className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2"
+                            >
+                              View guideline <ArrowRight className="h-3 w-3" />
+                            </Link>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </ScrollArea>
               </div>
             </div>
           </div>

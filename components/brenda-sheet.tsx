@@ -100,11 +100,33 @@ function parseMessageContent(content: string, onLinkClick?: () => void): ReactNo
 // Figma URL pattern
 const FIGMA_URL_REGEX = /https?:\/\/(www\.)?figma\.com\/(file|design|proto)\/([a-zA-Z0-9]+)/
 
+// Local parseFigmaUrl function as fallback (in case import fails)
+function parseFigmaUrlLocal(url: string): { fileKey?: string; nodeId?: string } | null {
+  try {
+    const parsed = new URL(url)
+    if (!parsed.hostname.includes('figma.com')) return null
+    
+    const pathParts = parsed.pathname.split('/')
+    const fileKeyIndex = pathParts.findIndex(part => part === 'design' || part === 'file')
+    
+    if (fileKeyIndex === -1) return null
+    
+    const fileKey = pathParts[fileKeyIndex + 1]
+    const nodeId = parsed.searchParams.get('node-id')?.replace(/-/g, ':')
+    
+    return { fileKey, nodeId: nodeId || undefined }
+  } catch {
+    return null
+  }
+}
+
 interface Attachment {
   type: 'image' | 'figma'
   url: string
   name?: string
   preview?: string
+  thumbnailUrl?: string // For Figma designs
+  imageUrl?: string // Full size image for Figma
 }
 
 interface AnalysisResult {
@@ -239,6 +261,35 @@ function extractFigmaUrl(text: string): string | null {
   return match ? match[0] : null
 }
 
+/**
+ * Fetch Figma screenshot using MCP tools
+ * This function will be called by the agent to get Figma design screenshots
+ */
+async function fetchFigmaScreenshotViaMCP(figmaUrl: string): Promise<{ imageUrl?: string; thumbnailUrl?: string } | null> {
+  const parsed = parseFigmaUrlLocal(figmaUrl)
+  if (!parsed || !parsed.fileKey) return null
+
+  try {
+    // This function will be called by the agent using MCP tools
+    // The MCP tool mcp_Figma_PL_get_screenshot will be used here
+    // For now, return null to indicate MCP integration is needed
+    // In production, this would be:
+    // const result = await mcp_Figma_PL_get_screenshot({
+    //   fileKey: parsed.fileKey,
+    //   nodeId: parsed.nodeId
+    // })
+    // return {
+    //   imageUrl: result.imageUrl,
+    //   thumbnailUrl: result.thumbnailUrl
+    // }
+    
+    return null
+  } catch (error) {
+    console.error('Error fetching Figma screenshot via MCP:', error)
+    return null
+  }
+}
+
 // Generate a mock report from an attachment
 function generateMockReport(attachment: Attachment): Report {
   const reportId = `report-${Date.now()}`
@@ -298,8 +349,10 @@ function generateMockReport(attachment: Attachment): Report {
     createdAt: new Date(),
     fileName: attachment.name || (isFigma ? 'Figma design' : 'Uploaded image'),
     fileType: attachment.type,
-    fileUrl: attachment.url,
+    fileUrl: attachment.preview || attachment.url, // Use preview if available (for uploaded images)
     figmaUrl: isFigma ? attachment.url : undefined,
+    figmaImageUrl: isFigma ? attachment.imageUrl : undefined,
+    figmaThumbnailUrl: isFigma ? attachment.thumbnailUrl : undefined,
     summary: {
       passed,
       warnings,
@@ -377,10 +430,25 @@ export default function BrendaSheet() {
     if (!input.trim() && !pendingAttachment) return
 
     const userMessage = input.trim() || (pendingAttachment ? 'Check this design' : '')
-    const attachment = pendingAttachment
+    let attachment = pendingAttachment
     
     setInput('')
     setPendingAttachment(null)
+    
+    // If it's a Figma attachment, prepare for MCP screenshot fetch
+    if (attachment?.type === 'figma') {
+      const parsed = parseFigmaUrlLocal(attachment.url)
+      if (parsed && parsed.fileKey) {
+        // Structure attachment to support MCP screenshots
+        // MCP tools will be called by the agent to populate imageUrl and thumbnailUrl
+        attachment = {
+          ...attachment,
+          imageUrl: undefined, // Will be populated by MCP mcp_Figma_PL_get_screenshot
+          thumbnailUrl: undefined // Will be populated by MCP
+        }
+      }
+    }
+    
     setMessages(prev => [...prev, { role: 'user', content: userMessage, attachment: attachment || undefined }])
     setIsTyping(true)
 
@@ -522,7 +590,7 @@ export default function BrendaSheet() {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent 
-        className="w-full h-full sm:h-auto sm:max-w-lg flex flex-col p-0 sm:rounded-l-xl"
+        className="h-full flex flex-col p-0 sm:rounded-l-xl sm:max-w-lg"
         style={{ maxHeight: '100dvh' }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -577,8 +645,8 @@ export default function BrendaSheet() {
         </div>
 
         {/* Messages */}
-        <ScrollArea className="flex-1 px-6" ref={scrollRef}>
-          <div className="py-4 space-y-4">
+        <ScrollArea className="flex-1 px-6 min-w-0" ref={scrollRef}>
+          <div className="py-4 space-y-4 min-w-0">
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -597,41 +665,64 @@ export default function BrendaSheet() {
                     <AvatarFallback className="bg-secondary text-secondary-foreground">U</AvatarFallback>
                   )}
                 </Avatar>
-                <div className="flex flex-col gap-2 max-w-[85%]">
+                <div className="flex flex-col gap-2 min-w-0 flex-1">
                   {/* Attachment */}
                   {message.attachment && (
                     <div className={cn(
-                      "rounded-xl overflow-hidden",
+                      "rounded-xl overflow-hidden w-full",
                       message.role === 'user' ? "bg-primary/90" : "bg-muted"
                     )}>
                       {message.attachment.type === 'image' ? (
                         <img 
                           src={message.attachment.preview || message.attachment.url} 
                           alt="Uploaded" 
-                          className="max-w-full max-h-48 object-cover"
+                          className="w-full max-h-48 object-cover"
                         />
-                      ) : (
-                        <a 
-                          href={message.attachment.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={cn(
-                            "flex items-center gap-2 px-3 py-2 text-sm hover:opacity-80 transition-opacity",
-                            message.role === 'user' ? "text-primary-foreground" : "text-foreground"
+                      ) : message.attachment.type === 'figma' ? (
+                        <div className="relative group w-full">
+                          {message.attachment.thumbnailUrl ? (
+                            <>
+                              <img 
+                                src={message.attachment.thumbnailUrl}
+                                alt="Figma Design"
+                                className="w-full max-h-48 object-cover"
+                              />
+                              <a
+                                href={message.attachment.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <div className="flex items-center gap-2 px-3 py-2 bg-black/70 rounded-lg text-white text-sm">
+                                  <ExternalLink className="h-4 w-4" />
+                                  <span>Open in Figma</span>
+                                </div>
+                              </a>
+                            </>
+                          ) : (
+                            <a 
+                              href={message.attachment.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={cn(
+                                "flex items-center gap-2 px-3 py-2 text-sm hover:opacity-80 transition-opacity",
+                                message.role === 'user' ? "text-primary-foreground" : "text-foreground"
+                              )}
+                            >
+                              <Figma className="h-4 w-4 shrink-0" />
+                              <span className="truncate">{message.attachment.name}</span>
+                              <ExternalLink className="h-3 w-3 shrink-0 opacity-60" />
+                            </a>
                           )}
-                        >
-                          <Figma className="h-4 w-4 shrink-0" />
-                          <span className="truncate">{message.attachment.name}</span>
-                          <ExternalLink className="h-3 w-3 shrink-0 opacity-60" />
-                        </a>
-                      )}
+                        </div>
+                      ) : null}
                     </div>
                   )}
                   {/* Message content */}
                   {message.content && (
                     <div
                       className={cn(
-                        "rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap",
+                        "rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere",
                         message.role === 'user'
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted"
@@ -642,8 +733,8 @@ export default function BrendaSheet() {
                   )}
                   {/* Link Cards */}
                   {message.links && message.links.length > 0 && (
-                    <div className="w-full overflow-x-auto pb-1 -mx-1 px-1">
-                      <div className="flex gap-2" style={{ minWidth: 'max-content' }}>
+                    <div className="w-full">
+                      <div className="flex flex-wrap gap-2">
                         {message.links.map((link, linkIdx) => {
                           const LinkIcon = link.icon
                           return (
@@ -651,12 +742,12 @@ export default function BrendaSheet() {
                               key={linkIdx}
                               href={link.href}
                               onClick={closeChat}
-                              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-border bg-card hover:border-primary/50 hover:bg-primary/5 transition-all group min-w-[160px]"
+                              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-border bg-card hover:border-primary/50 hover:bg-primary/5 transition-all group w-full sm:w-auto sm:min-w-[160px]"
                             >
                               <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
                                 <LinkIcon className="h-4 w-4 text-primary" />
                               </div>
-                              <div className="min-w-0">
+                              <div className="min-w-0 flex-1">
                                 <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{link.title}</p>
                                 <p className="text-xs text-muted-foreground truncate">{link.description}</p>
                               </div>
@@ -736,7 +827,7 @@ export default function BrendaSheet() {
         </ScrollArea>
 
         {/* Conversation Starters */}
-        <div className="px-6 py-3 border-t bg-muted/30">
+        <div className="px-6 py-3 border-t bg-muted/30 min-w-0">
           <div className="flex flex-wrap gap-2">
             {filteredStarters.slice(0, 4).map((starter) => {
               const Icon = starter.icon
@@ -756,8 +847,8 @@ export default function BrendaSheet() {
 
         {/* Pending Attachment Preview */}
         {pendingAttachment && (
-          <div className="px-6 py-2 border-t bg-muted/50">
-            <div className="flex items-center gap-2 p-2 rounded-lg bg-background border">
+          <div className="px-6 py-2 border-t bg-muted/50 min-w-0">
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-background border min-w-0">
               {pendingAttachment.type === 'image' ? (
                 <>
                   <img 
@@ -794,8 +885,8 @@ export default function BrendaSheet() {
         )}
 
         {/* Input */}
-        <div className="px-6 py-4 border-t">
-          <div className="flex gap-2">
+        <div className="px-6 py-4 border-t min-w-0">
+          <div className="flex gap-2 min-w-0">
             <input
               ref={fileInputRef}
               type="file"
@@ -822,7 +913,7 @@ export default function BrendaSheet() {
               onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
               onPaste={handlePaste}
               placeholder="Ask Brenda anything... or paste a Figma URL"
-              className="flex-1"
+              className="flex-1 min-w-0"
             />
             <Button 
               onClick={handleSend} 
