@@ -352,15 +352,18 @@ export default function Sidebar({ onNavigate, isMobile }: SidebarProps) {
                         
                         {/* Subsections (for Brand & Design) - Nested Accordions */}
                         {section.subsections && section.subsections.length > 0 && (
-                          <Accordion type="multiple" className="w-full mt-2">
-                            {section.subsections.map((subsection) => {
-                              // Check if any item in this subsection is active
-                              const hasActiveItem = subsection.items.some(item => {
+                          <Accordion 
+                            type="multiple" 
+                            className="w-full mt-2"
+                            defaultValue={section.subsections.filter(subsection => 
+                              subsection.items.some(item => {
                                 const normalizedPathname = pathname.replace(/\/$/, '') || '/'
                                 const normalizedHref = item.href.replace(/\/$/, '') || '/'
                                 return normalizedPathname === normalizedHref
                               })
-                              
+                            ).map(s => s.label)}
+                          >
+                            {section.subsections.map((subsection) => {
                               return (
                                 <AccordionItem 
                                   key={subsection.label} 
